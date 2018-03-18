@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">android-rss-reader</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_feeds">My Feeds</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
