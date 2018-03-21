@@ -101,7 +101,21 @@ public class FeedItem implements Parcelable {
         this.parentFeed = parentFeed;
     }
 
+    public String getAge() {
+        long curr = System.currentTimeMillis();
+        int min = (int)((curr - this.date) / (1000*60));
+
+        if (min < 60) {
+            return Integer.toString(min) + " minutes ago";
+        }
+        else if (min < 24*60)
+            return Integer.toString(min / 60) + " hours ago";
+        else
+            return Integer.toString(min / (60*24)) + " days ago";
+    }
+
     private FeedItem(Parcel in) {
+        this.parentFeed = in.readString();
         this.title = in.readString();
         this.link = in.readString();
         this.description = in.readString();
@@ -129,6 +143,7 @@ public class FeedItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.parentFeed);
         dest.writeString(this.title);
         dest.writeString(this.link);
         dest.writeString(this.description);

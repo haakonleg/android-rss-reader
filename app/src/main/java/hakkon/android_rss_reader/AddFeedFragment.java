@@ -43,6 +43,7 @@ public class AddFeedFragment extends DialogFragment {
             if (!url.isEmpty()) {
                 cb.onFeedAdded(url);
                 this.dismiss();
+                this.urlInput.getText().clear();
             }
         });
 

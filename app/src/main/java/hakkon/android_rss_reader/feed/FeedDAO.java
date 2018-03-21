@@ -14,7 +14,7 @@ import java.util.List;
 
 @Dao
 public interface FeedDAO {
-    @Query("SELECT * FROM Feed ORDER BY feed_position")
+    @Query("SELECT * FROM Feed")
     List<Feed> getFeeds();
 
     @Query("SELECT * FROM Feed WHERE feed_origin = :link")

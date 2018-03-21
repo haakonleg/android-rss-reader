@@ -21,9 +21,15 @@ public class DownloadFeed {
     public String getFeed() throws IOException {
         URL url = new URL(this.url);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setInstanceFollowRedirects(true);
 
         // Read data
         BufferedReader in;
+        if (conn.getResponseCode() == 301) {
+            this.url = this.url.replace("http://", "https://");
+            return getFeed();
+        }
+
         if (conn.getResponseCode() == 200) {
             in = new BufferedReader(
                     new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));

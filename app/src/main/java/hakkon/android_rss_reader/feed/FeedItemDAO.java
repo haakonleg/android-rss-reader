@@ -16,6 +16,9 @@ public interface FeedItemDAO {
     @Query("SELECT * FROM FeedItem WHERE item_parent = :parent ORDER BY item_date DESC")
     List<FeedItem> getItems(String parent);
 
+    @Query("SELECT * FROM FeedItem ORDER BY item_date DESC LIMIT :limit")
+    List<FeedItem> getRecentItems(int limit);
+
     @Query("SELECT item_date FROM FeedItem WHERE item_parent = :parent ORDER BY item_date DESC LIMIT 1")
     long getNewestItem(String parent);
 

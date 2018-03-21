@@ -11,16 +11,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
-import android.widget.ImageView;
+
 import hakkon.android_rss_reader.feed.Feed;
-import hakkon.android_rss_reader.feed.FeedItem;
 import hakkon.android_rss_reader.feed.NavFeedListAdapter;
 import hakkon.android_rss_reader.tasks.FeedParser;
-import hakkon.android_rss_reader.tasks.GetBitmap;
-import hakkon.android_rss_reader.tasks.GetFeed;
+import hakkon.android_rss_reader.tasks.GetFeeds;
 import hakkon.android_rss_reader.tasks.GetItems;
+import hakkon.android_rss_reader.tasks.GetRecentItems;
+import hakkon.android_rss_reader.util.Messages;
+import hakkon.android_rss_reader.util.NetworkState;
 
 public class HomeActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
     private DrawerLayout drawerLayout;
@@ -47,26 +47,19 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         this.addFeedBtn = findViewById(R.id.nav_add_feed_btn);
 
         // Set up nav feed list
-        this.feedsListAdapter = new NavFeedListAdapter(new FeedsListListener(), new LoadImage());
+        this.feedsListAdapter = new NavFeedListAdapter(this, new FeedsListListener());
         this.feedsList.setAdapter(this.feedsListAdapter);
 
         // Add feed click listener
         this.addFeedFragment = new AddFeedFragment();
-        this.addFeedFragment.setFeedAddedCallback(this::addFeed);
+        this.addFeedFragment.setFeedAddedCallback((url) -> updateFeed(url, true));
         this.addFeedBtn.setOnClickListener((v) -> this.showAddFeedPopup());
 
         // Set fragment manager listener
         getSupportFragmentManager().addOnBackStackChangedListener(this);
 
-        FeedParser parser = new FeedParser(this, "https://resett.no/feed/", (error, feed) -> {
-            this.feedsListAdapter.addItem(feed);
-        });
-        ThreadPool.getInstance().execute(parser);
-
-        parser = new FeedParser(this, "http://rss.slashdot.org/Slashdot/slashdot", (error, feed) -> {
-            this.feedsListAdapter.addItem(feed);
-        });
-        ThreadPool.getInstance().execute(parser);
+        // Do initializations
+        initHome();
     }
 
     private void showAddFeedPopup() {
@@ -80,8 +73,57 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         this.addFeedFragment.show(ft, "AddFeedDialog");
     }
 
-    private void addFeed(String url) {
-        Log.e("FEEDURL", url);
+    private void initHome() {
+        // Add stored feeds to drawer list
+        GetFeeds getFeeds = new GetFeeds(this, (error, feeds) -> {
+
+            boolean hasNetwork = NetworkState.hasNetwork(this);
+            for (Feed feed : feeds) {
+                this.feedsListAdapter.addItem(feed);
+                // Update feed if we have an internet connection
+                if (hasNetwork)
+                    updateFeed(feed.getOriginLink(), false);
+            }
+
+            // Display new feed entries (home screen)
+            GetRecentItems recentItems = new GetRecentItems(this, 50, (error1, items) -> {
+                ViewFeedFragment fragment = ViewFeedFragment.newInstance(getString(R.string.app_name), items);
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_layout, fragment).commit();
+            });
+            ThreadPool.getInstance().execute(recentItems);
+
+        });
+        ThreadPool.getInstance().execute(getFeeds);
+    }
+
+    private void updateFeed(String url, boolean addToDrawer) {
+        FeedParser parser = new FeedParser(this, url, (error, feed) -> {
+            if (error == -1) {
+                Messages.showError(this, "There was an error downloading this feed: " + url, null);
+            } else if (error == -2) {
+                Messages.showError(this, "This does not seem to be a valid feed: " + url, null);
+            } else if (error == -3) {
+                Messages.showError(this, "There was an error parsing this feed: " + url, null);
+            } else if (addToDrawer) {
+                this.feedsListAdapter.addItem(feed);
+            }
+        });
+        ThreadPool.getInstance().execute(parser);
+    }
+
+    private void displayFeed(Feed feed) {
+        GetItems task = new GetItems(this, feed.getOriginLink(), (error, items) -> {
+            ViewFeedFragment fragment = ViewFeedFragment.newInstance(feed.getTitle(), items);
+            getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(
+                    android.R.anim.slide_in_left,
+                    android.R.anim.slide_out_right,
+                    android.R.anim.slide_in_left,
+                    android.R.anim.slide_out_right)
+                    .replace(R.id.content_layout, fragment)
+                    .addToBackStack("ViewFeed").commit();
+        });
+        ThreadPool.getInstance().execute(task);
     }
 
     @Override
@@ -104,25 +146,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         @Override
         public void onClick(int position) {
             Feed feed = feedsListAdapter.getItem(position);
-            ViewFeedFragment fragment = ViewFeedFragment.newInstance(feed);
-            getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(
-                            android.R.anim.slide_in_left,
-                            android.R.anim.slide_out_right,
-                            android.R.anim.slide_in_left,
-                            android.R.anim.slide_out_right)
-                    .replace(R.id.content_layout, fragment)
-                    .addToBackStack("ViewFeed").commit();
-        }
-    }
-
-    private class LoadImage implements NavFeedListAdapter.ImageLoader {
-        @Override
-        public void loadThis(String url, ImageView view) {
-            GetBitmap bitmapTask = new GetBitmap(HomeActivity.this, url, (error, bitmap) -> {
-                view.setImageBitmap(bitmap);
-            });
-            ThreadPool.getInstance().execute(bitmapTask);
+            displayFeed(feed);
         }
     }
 
@@ -133,6 +157,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         int cnt = fm.getBackStackEntryCount();
         if (cnt == 0) {
             getSupportActionBar().setTitle(getString(R.string.app_name));
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
             return;
         }
 

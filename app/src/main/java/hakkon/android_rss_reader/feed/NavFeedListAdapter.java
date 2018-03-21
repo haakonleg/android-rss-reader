@@ -1,5 +1,6 @@
 package hakkon.android_rss_reader.feed;
 
+import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,17 +13,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hakkon.android_rss_reader.R;
+import hakkon.android_rss_reader.ThreadPool;
+import hakkon.android_rss_reader.tasks.GetBitmap;
 
 public class NavFeedListAdapter extends RecyclerView.Adapter<NavFeedListAdapter.ViewHolder> {
+    Activity activity;
     private List<Feed> items;
     private OnItemClicked listener;
-    private ImageLoader imageLoader;
 
-    public NavFeedListAdapter(OnItemClicked listener, ImageLoader imageLoader) {
+    public NavFeedListAdapter(Activity activity, OnItemClicked listener) {
         super();
+        this.activity = activity;
         this.items = new ArrayList<>();
         this.listener = listener;
-        this.imageLoader = imageLoader;
     }
 
     public void addItem(Feed item) {
@@ -48,7 +51,13 @@ public class NavFeedListAdapter extends RecyclerView.Adapter<NavFeedListAdapter.
 
         String imageUrl = item.getImage();
         if (!imageUrl.isEmpty()) {
-            this.imageLoader.loadThis(imageUrl, holder.feedImg);
+            GetBitmap bitmapTask = new GetBitmap(this.activity, imageUrl, (error, bitmap) -> {
+                if (bitmap != null)
+                    holder.feedImg.setImageBitmap(bitmap);
+                else
+                    holder.feedImg.setImageDrawable(this.activity.getDrawable(R.drawable.ic_rss_feed_24dp));
+            });
+            ThreadPool.getInstance().execute(bitmapTask);
         }
 
         holder.titleTxt.setText(item.getTitle());
@@ -71,10 +80,6 @@ public class NavFeedListAdapter extends RecyclerView.Adapter<NavFeedListAdapter.
             feedImg = view.findViewById(R.id.icon_img);
             titleTxt = view.findViewById(R.id.title_txt);
         }
-    }
-
-    public interface ImageLoader {
-        public void loadThis(String url, ImageView view);
     }
 
     public interface OnItemClicked {

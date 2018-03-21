@@ -24,17 +24,6 @@ public abstract class Parser {
     public static final int TYPE_RDF = 2;
     public static final int TYPE_UNKNOWN = -1;
 
-    // Time formats
-    // RFC 822
-    final static SimpleDateFormat timeRSS =
-            new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.getDefault());
-    // RFC 3399
-    final static SimpleDateFormat timeAtom =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault());
-    // ISO 8601
-    final static SimpleDateFormat timeRdf =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-
     public static int detectType(String xml) throws XmlPullParserException, IOException {
         XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
         StringReader in = new StringReader(xml);

@@ -7,8 +7,11 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
+
 import hakkon.android_rss_reader.feed.FeedItem;
 import hakkon.android_rss_reader.feed.Feed;
 
@@ -17,6 +20,10 @@ import hakkon.android_rss_reader.feed.Feed;
  */
 
 public class RSSParser extends Parser {
+    // RFC 822
+    private final SimpleDateFormat timeRSS =
+            new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.getDefault());
+
     public RSSParser() throws XmlPullParserException { }
 
     @Override
@@ -87,7 +94,7 @@ public class RSSParser extends Parser {
         String unformatted = readText(parser);
 
         try {
-            Date date = Parser.timeRSS.parse(unformatted);
+            Date date = timeRSS.parse(unformatted);
             return date.getTime();
         } catch (ParseException e) {
             Log.e("RSSParser", Log.getStackTraceString(e));

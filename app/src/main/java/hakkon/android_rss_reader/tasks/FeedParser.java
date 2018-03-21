@@ -1,6 +1,7 @@
 package hakkon.android_rss_reader.tasks;
 
 import android.app.Activity;
+import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -88,14 +89,18 @@ public class FeedParser extends BaseTask<Feed> {
         FeedDatabase db = Database.getInstance(callingActivity.getApplicationContext());
 
         // Determine newly updated feeds to add
-        ArrayList<FeedItem> toInsert = new ArrayList<>();
-        long lastDate = db.feedItemDAO().getNewestItem(this.url);
-        for(FeedItem item : items) {
-            if (item.getDate() > lastDate) {
-                item.setParentFeed(this.url);
-                toInsert.add(item);
+        try {
+            ArrayList<FeedItem> toInsert = new ArrayList<>();
+            long lastDate = db.feedItemDAO().getNewestItem(this.url);
+            for(FeedItem item : items) {
+                if (item.getDate() > lastDate) {
+                    item.setParentFeed(this.url);
+                    toInsert.add(item);
+                }
             }
+            db.feedItemDAO().insertItems(toInsert);
+        } catch (SQLiteException e) {
+            Log.e("FeedParser", Log.getStackTraceString(e));
         }
-        db.feedItemDAO().insertItems(toInsert);
     }
 }
