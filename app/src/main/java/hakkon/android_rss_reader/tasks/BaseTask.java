@@ -10,7 +10,7 @@ import android.os.Process;
 public abstract class BaseTask<T> implements Runnable {
     private Thread thread;
     private TaskCallback<T> cb;
-    private Activity callingActivity;
+    protected Activity callingActivity;
 
     protected BaseTask (Activity ca, TaskCallback<T> cb) {
         this.callingActivity = ca;

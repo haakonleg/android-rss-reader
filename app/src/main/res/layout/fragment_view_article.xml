@@ -2,6 +2,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="hakkon.android_rss_reader.ViewArticleFragment">
+    tools:context="hakkon.android_rss_reader.ViewArticleFragment"
+    android:layout_margin="5dp">
 
+    <TextView
+        android:id="@+id/article_title_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:text="FEED_TITLE"
+        android:textAppearance="@android:style/TextAppearance.Material"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/article_footer_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FEED_FOOTER"
+        android:layout_below="@id/article_title_txt"/>
+
+    <WebView
+        android:id="@+id/article_web_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/article_footer_txt"/>
 </RelativeLayout>

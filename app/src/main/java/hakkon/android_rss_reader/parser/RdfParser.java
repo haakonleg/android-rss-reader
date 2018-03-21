@@ -4,20 +4,22 @@ import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+
 import hakkon.android_rss_reader.feed.FeedItem;
 import hakkon.android_rss_reader.feed.Feed;
 
 /**
- * Created by hakkon on 17.03.18.
+ * Created by hakkon on 19.03.18.
  */
 
-public class RSSParser extends Parser {
-    public RSSParser() throws XmlPullParserException { }
+public class RdfParser extends Parser {
+    public RdfParser () throws XmlPullParserException {}
 
     @Override
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
@@ -28,23 +30,15 @@ public class RSSParser extends Parser {
 
         parser.setInput(in);
         parser.nextTag();
-        parser.require(XmlPullParser.START_TAG, null, "rss");
-        parser.nextTag();
-        parser.require(XmlPullParser.START_TAG, null, "channel");
+        parser.require(XmlPullParser.START_TAG, null, "rdf:RDF");
 
         while(parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG)
                 continue;
 
             String tag = parser.getName();
-            if (tag.equalsIgnoreCase("title")) {
-                result.feed.setTitle(readText(parser));
-            } else if (tag.equalsIgnoreCase("link")) {
-                result.feed.setLink(readText(parser));
-            } else if (tag.equalsIgnoreCase("description")) {
-                result.feed.setDescription(readText(parser));
-            } else if (tag.equalsIgnoreCase("image")) {
-                result.feed.setImage(readImage(parser));
+            if (tag.equalsIgnoreCase("channel")) {
+                readChannel(parser, result.feed);
             } else if (tag.equalsIgnoreCase("item")) {
                 result.items.add(readItem(parser));
             } else {
@@ -54,6 +48,44 @@ public class RSSParser extends Parser {
 
         in.close();
         return result;
+    }
+
+    private void readChannel(XmlPullParser parser, Feed in) throws XmlPullParserException, IOException {
+        while(parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG)
+                continue;
+
+            String tag = parser.getName();
+            if (tag.equalsIgnoreCase("title")) {
+                in.setTitle(readText(parser));
+            } else if (tag.equalsIgnoreCase("link")) {
+                in.setLink(readText(parser));
+            } else if (tag.equalsIgnoreCase("description")) {
+                in.setDescription(readText(parser));
+            } else if (tag.equalsIgnoreCase("image")) {
+                String image = parser.getAttributeValue(null, "rdf:resource");
+                if (image != null)
+                    in.setImage(parser.getAttributeValue(null, "rdf:resource"));
+                parser.nextTag();
+            } else if (tag.equalsIgnoreCase("dc:date")) {
+                in.setUpdated(readDate(parser));
+            } else {
+                skip(parser);
+            }
+        }
+    }
+
+    private long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
+        String unformatted = readText(parser);
+
+        try {
+            Date date = Parser.timeRdf.parse(unformatted);
+            return date.getTime();
+        } catch (ParseException e) {
+            Log.e("RdfParser", Log.getStackTraceString(e));
+        }
+
+        return -1;
     }
 
     private FeedItem readItem(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -70,45 +102,12 @@ public class RSSParser extends Parser {
                 item.setLink(readText(parser));
             } else if (tag.equalsIgnoreCase("description")) {
                 item.setDescription(readText(parser));
-            } else if (tag.equalsIgnoreCase("author")) {
-                item.setAuthor(readText(parser));
-            } else if (tag.equalsIgnoreCase("pubDate")) {
+            } else if (tag.equalsIgnoreCase("dc:date")) {
                 item.setDate(readDate(parser));
-            } else if (tag.equalsIgnoreCase("content:encoded")) {
-                item.setEncodedContent(readText(parser));
             } else {
                 skip(parser);
             }
         }
         return item;
-    }
-
-    private long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String unformatted = readText(parser);
-
-        try {
-            Date date = Parser.timeRSS.parse(unformatted);
-            return date.getTime();
-        } catch (ParseException e) {
-            Log.e("RSSParser", Log.getStackTraceString(e));
-        }
-
-        return -1;
-    }
-
-    private String readImage(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String res = "";
-        while(parser.next() != XmlPullParser.END_TAG) {
-            if (parser.getEventType() != XmlPullParser.START_TAG)
-                continue;
-
-            String tag = parser.getName();
-            if (tag.equalsIgnoreCase("url")) {
-                res = readText(parser);
-            } else {
-                skip(parser);
-            }
-        }
-        return res;
     }
 }

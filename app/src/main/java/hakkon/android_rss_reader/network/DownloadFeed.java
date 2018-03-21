@@ -1,4 +1,4 @@
-package hakkon.android_rss_reader.parser;
+package hakkon.android_rss_reader.network;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,8 +19,8 @@ public class DownloadFeed {
     }
 
     public String getFeed() throws IOException {
-        URL feedUrl = new URL(url);
-        HttpURLConnection conn = (HttpURLConnection) feedUrl.openConnection();
+        URL url = new URL(this.url);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
         // Read data
         BufferedReader in;
@@ -28,7 +28,7 @@ public class DownloadFeed {
             in = new BufferedReader(
                     new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
         } else {
-            throw new IOException("Error status code " + Integer.toString(conn.getResponseCode()));
+            throw new IOException("Error response code " + Integer.toString(conn.getResponseCode()));
         }
 
         StringBuilder buffer = new StringBuilder();

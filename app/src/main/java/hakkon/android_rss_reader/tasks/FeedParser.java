@@ -6,28 +6,37 @@ import android.util.Log;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import hakkon.android_rss_reader.feed.FeedModel;
-import hakkon.android_rss_reader.parser.DownloadFeed;
+import hakkon.android_rss_reader.database.Database;
+import hakkon.android_rss_reader.database.FeedDatabase;
+import hakkon.android_rss_reader.feed.Feed;
+import hakkon.android_rss_reader.feed.FeedItem;
+import hakkon.android_rss_reader.network.DownloadFeed;
+import hakkon.android_rss_reader.parser.AtomParser;
+import hakkon.android_rss_reader.parser.Parser;
 import hakkon.android_rss_reader.parser.RSSParser;
+import hakkon.android_rss_reader.parser.RdfParser;
 
 /**
  * Created by hakkon on 12.03.18.
  */
 
-public class FeedParser extends BaseTask<FeedModel> {
-    private FeedModel feed;
+public class FeedParser extends BaseTask<Feed> {
     private String url;
 
-    public FeedParser(Activity ca, String url, TaskCallback<FeedModel> cb) {
+    public FeedParser(Activity ca, String url, TaskCallback<Feed> cb) {
         super(ca, cb);
         this.url = url;
-        this.feed = new FeedModel();
     }
 
     @Override
     protected void doTask() {
+        Parser.ParserResult result = null;
         String data = null;
+
+        // Download the feed xml
         try {
             DownloadFeed downloader = new DownloadFeed(this.url);
             data = downloader.getFeed();
@@ -37,15 +46,56 @@ public class FeedParser extends BaseTask<FeedModel> {
             return;
         }
 
+        // Determine parser type and get the parsed result
         try {
-            RSSParser parser = new RSSParser();
-            this.feed = parser.parse(data);
+            int type = Parser.detectType(data);
+            switch (type) {
+                case Parser.TYPE_RSS:
+                    result = new RSSParser().parse(data);
+                    break;
+                case Parser.TYPE_ATOM:
+                    result = new AtomParser().parse(data);
+                    break;
+                case Parser.TYPE_RDF:
+                    result = new RdfParser().parse(data);
+                    break;
+                case Parser.TYPE_UNKNOWN:
+                    callbackToUI(-2, null);
+                    return;
+            }
         } catch (IOException | XmlPullParserException e) {
             Log.e("FeedParser", Log.getStackTraceString(e));
-            callbackToUI(-2, null);
+            callbackToUI(-3, null);
             return;
         }
 
-        callbackToUI(0, this.feed);
+        result.feed.setOriginLink(this.url);
+        saveToDb(result.feed);
+        saveItemsToDb(result.items);
+
+        callbackToUI(0, result.feed);
+    }
+
+    private void saveToDb(Feed feed) {
+        FeedDatabase db = Database.getInstance(callingActivity.getApplicationContext());
+
+        // Check if it exists already, if not insert
+        if (db.feedDao().getFeed(feed.getOriginLink()) == null)
+            db.feedDao().insertFeed(feed);
+    }
+
+    private void saveItemsToDb(List<FeedItem> items) {
+        FeedDatabase db = Database.getInstance(callingActivity.getApplicationContext());
+
+        // Determine newly updated feeds to add
+        ArrayList<FeedItem> toInsert = new ArrayList<>();
+        long lastDate = db.feedItemDAO().getNewestItem(this.url);
+        for(FeedItem item : items) {
+            if (item.getDate() > lastDate) {
+                item.setParentFeed(this.url);
+                toInsert.add(item);
+            }
+        }
+        db.feedItemDAO().insertItems(toInsert);
     }
 }

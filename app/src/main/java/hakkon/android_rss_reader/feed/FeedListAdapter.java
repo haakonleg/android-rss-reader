@@ -1,6 +1,7 @@
 package hakkon.android_rss_reader.feed;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,13 +14,19 @@ import java.util.List;
 import hakkon.android_rss_reader.R;
 
 public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHolder> {
-    private List<FeedItemModel> items;
+    private List<FeedItem> items;
     private ImageLoader imageLoader;
+    private OnItemClicked listener;
 
-    public FeedListAdapter(List<FeedItemModel> items, ImageLoader imageLoader) {
+    public FeedListAdapter(List<FeedItem> items, ImageLoader imageLoader, OnItemClicked listener) {
         super();
         this.items = items;
         this.imageLoader = imageLoader;
+        this.listener = listener;
+    }
+
+    public FeedItem getItem(int position) {
+        return items.get(position);
     }
 
     @NonNull
@@ -33,7 +40,7 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        FeedItemModel item = this.items.get(position);
+        FeedItem item = this.items.get(position);
 
         // TODO: Load image
 
@@ -46,6 +53,7 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
         }
 
         holder.descTxt.setText(desc);
+        holder.card.setOnClickListener((v) -> this.listener.onClick(position));
     }
 
     @Override
@@ -54,12 +62,14 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
+        CardView card;
         ImageView feedImg;
         TextView titleTxt;
         TextView descTxt;
 
         ViewHolder(View view) {
             super(view);
+            card = view.findViewById(R.id.feed_item_card);
             feedImg = view.findViewById(R.id.feed_item_img);
             titleTxt = view.findViewById(R.id.feed_item_title);
             descTxt = view.findViewById(R.id.feed_item_desc);
@@ -68,5 +78,9 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
 
     public interface ImageLoader {
         public void loadThis(ImageView view);
+    }
+
+    public interface OnItemClicked {
+        void onClick(int position);
     }
 }

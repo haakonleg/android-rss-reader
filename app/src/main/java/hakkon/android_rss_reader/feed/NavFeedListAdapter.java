@@ -14,24 +14,23 @@ import java.util.List;
 import hakkon.android_rss_reader.R;
 
 public class NavFeedListAdapter extends RecyclerView.Adapter<NavFeedListAdapter.ViewHolder> {
-    private List<FeedModel> items;
+    private List<Feed> items;
     private OnItemClicked listener;
+    private ImageLoader imageLoader;
 
-    public NavFeedListAdapter() {
+    public NavFeedListAdapter(OnItemClicked listener, ImageLoader imageLoader) {
         super();
         this.items = new ArrayList<>();
-    }
-
-    public void setOnItemClickListener(OnItemClicked listener) {
         this.listener = listener;
+        this.imageLoader = imageLoader;
     }
 
-    public void addItem(FeedModel item) {
+    public void addItem(Feed item) {
         this.items.add(item);
         this.notifyItemInserted(this.items.size() - 1);
     }
 
-    public FeedModel getItem(int position) {
+    public Feed getItem(int position) {
         return this.items.get(position);
     }
 
@@ -45,9 +44,12 @@ public class NavFeedListAdapter extends RecyclerView.Adapter<NavFeedListAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        FeedModel item = this.items.get(position);
+        Feed item = this.items.get(position);
 
-        // TODO: Add image
+        String imageUrl = item.getImage();
+        if (!imageUrl.isEmpty()) {
+            this.imageLoader.loadThis(imageUrl, holder.feedImg);
+        }
 
         holder.titleTxt.setText(item.getTitle());
         holder.view.setOnClickListener((v) -> this.listener.onClick(position));
@@ -69,6 +71,10 @@ public class NavFeedListAdapter extends RecyclerView.Adapter<NavFeedListAdapter.
             feedImg = view.findViewById(R.id.icon_img);
             titleTxt = view.findViewById(R.id.title_txt);
         }
+    }
+
+    public interface ImageLoader {
+        public void loadThis(String url, ImageView view);
     }
 
     public interface OnItemClicked {

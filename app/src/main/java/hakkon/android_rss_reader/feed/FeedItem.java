@@ -1,35 +1,50 @@
 package hakkon.android_rss_reader.feed;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import android.support.annotation.NonNull;
 
 /**
  * Created by hakkon on 12.03.18.
  */
 
-public class FeedItemModel implements Parcelable {
-    // RFC 822
-    private static final SimpleDateFormat sdf =
-            new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.getDefault());
+@Entity(primaryKeys = {"item_parent", "item_link"})
+public class FeedItem implements Parcelable {
+    @NonNull
+    @ColumnInfo(name = "item_parent")
+    @ForeignKey(entity = Feed.class, parentColumns = "feed_origin", childColumns = "item_parent")
+    private String parentFeed;
 
+    @ColumnInfo(name = "item_title")
     private String title;
+
+    @NonNull
+    @ColumnInfo(name = "item_link")
     private String link;
+
+    @ColumnInfo(name = "item_desc")
     private String description;
+
+    @ColumnInfo(name = "item_author")
     private String author;
+
+    @ColumnInfo(name = "item_date")
     private long date;
 
-    public FeedItemModel() {
+    @ColumnInfo(name = "item_encoded")
+    private String encodedContent;
+
+    public FeedItem() {
         this.title = "No title";
         this.link = "";
         this.description = "No description";
         this.author = "No author";
         this.date = -1;
+        this.encodedContent = "";
     }
 
     public String getTitle() {
@@ -68,35 +83,42 @@ public class FeedItemModel implements Parcelable {
         return date;
     }
 
-    public void setDate(String unformatted) {
-        Date date = null;
-        try {
-            date = sdf.parse(unformatted);
-        } catch (ParseException e) {
-            Log.e("FeedItemModel", Log.getStackTraceString(e));
-        }
-        if (date != null) {
-            this.date = date.getTime();
-        }
+    public void setDate(long date) { this.date = date; }
+
+    public String getEncodedContent() {
+        return encodedContent;
     }
 
-    private FeedItemModel(Parcel in) {
+    public void setEncodedContent(String encodedContent) {
+        this.encodedContent = encodedContent;
+    }
+
+    public String getParentFeed() {
+        return parentFeed;
+    }
+
+    public void setParentFeed(String parentFeed) {
+        this.parentFeed = parentFeed;
+    }
+
+    private FeedItem(Parcel in) {
         this.title = in.readString();
         this.link = in.readString();
         this.description = in.readString();
         this.author = in.readString();
         this.date = in.readLong();
+        this.encodedContent = in.readString();
     }
 
-    public static final Creator<FeedItemModel> CREATOR = new Creator<FeedItemModel>() {
+    public static final Creator<FeedItem> CREATOR = new Creator<FeedItem>() {
         @Override
-        public FeedItemModel createFromParcel(Parcel source) {
-            return new FeedItemModel(source);
+        public FeedItem createFromParcel(Parcel source) {
+            return new FeedItem(source);
         }
 
         @Override
-        public FeedItemModel[] newArray(int size) {
-            return new FeedItemModel[0];
+        public FeedItem[] newArray(int size) {
+            return new FeedItem[0];
         }
     };
 
@@ -112,5 +134,6 @@ public class FeedItemModel implements Parcelable {
         dest.writeString(this.description);
         dest.writeString(this.author);
         dest.writeLong(this.date);
+        dest.writeString(this.encodedContent);
     }
 }

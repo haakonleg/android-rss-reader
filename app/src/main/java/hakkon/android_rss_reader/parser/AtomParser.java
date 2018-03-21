@@ -12,14 +12,9 @@ import java.util.Date;
 import hakkon.android_rss_reader.feed.FeedItem;
 import hakkon.android_rss_reader.feed.Feed;
 
-/**
- * Created by hakkon on 17.03.18.
- */
+public class AtomParser extends Parser {
+    public AtomParser() throws XmlPullParserException { }
 
-public class RSSParser extends Parser {
-    public RSSParser() throws XmlPullParserException { }
-
-    @Override
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
         ParserResult result = new ParserResult();
         result.feed = new Feed();
@@ -28,9 +23,7 @@ public class RSSParser extends Parser {
 
         parser.setInput(in);
         parser.nextTag();
-        parser.require(XmlPullParser.START_TAG, null, "rss");
-        parser.nextTag();
-        parser.require(XmlPullParser.START_TAG, null, "channel");
+        parser.require(XmlPullParser.START_TAG, null, "feed");
 
         while(parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG)
@@ -39,76 +32,75 @@ public class RSSParser extends Parser {
             String tag = parser.getName();
             if (tag.equalsIgnoreCase("title")) {
                 result.feed.setTitle(readText(parser));
+            } else if (tag.equalsIgnoreCase("updated")) {
+                result.feed.setUpdated(readDate(parser));
             } else if (tag.equalsIgnoreCase("link")) {
                 result.feed.setLink(readText(parser));
-            } else if (tag.equalsIgnoreCase("description")) {
-                result.feed.setDescription(readText(parser));
-            } else if (tag.equalsIgnoreCase("image")) {
-                result.feed.setImage(readImage(parser));
-            } else if (tag.equalsIgnoreCase("item")) {
-                result.items.add(readItem(parser));
+            } else if (tag.equalsIgnoreCase("icon")) {
+                result.feed.setImage(readText(parser));
+            } else if (tag.equalsIgnoreCase("entry")) {
+                result.items.add(readEntry(parser));
             } else {
                 skip(parser);
             }
         }
 
-        in.close();
         return result;
     }
 
-    private FeedItem readItem(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private FeedItem readEntry(XmlPullParser parser) throws XmlPullParserException, IOException {
         FeedItem item = new FeedItem();
 
-        while(parser.next() != XmlPullParser.END_TAG) {
+        while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG)
                 continue;
 
             String tag = parser.getName();
             if (tag.equalsIgnoreCase("title")) {
                 item.setTitle(readText(parser));
-            } else if (tag.equalsIgnoreCase("link")) {
-                item.setLink(readText(parser));
-            } else if (tag.equalsIgnoreCase("description")) {
-                item.setDescription(readText(parser));
-            } else if (tag.equalsIgnoreCase("author")) {
-                item.setAuthor(readText(parser));
-            } else if (tag.equalsIgnoreCase("pubDate")) {
+            } else if (tag.equalsIgnoreCase("updated")) {
                 item.setDate(readDate(parser));
-            } else if (tag.equalsIgnoreCase("content:encoded")) {
+            } else if (tag.equalsIgnoreCase("author")) {
+                item.setAuthor(readAuthor(parser));
+            } else if (tag.equalsIgnoreCase("content")) {
                 item.setEncodedContent(readText(parser));
+            } else if (tag.equalsIgnoreCase("link")) {
+                item.setLink(parser.getAttributeValue(null, "href"));
+                parser.nextTag();
+            } else if (tag.equalsIgnoreCase("summary")) {
+                item.setDescription(readText(parser));
             } else {
                 skip(parser);
             }
         }
+
         return item;
+    }
+
+    private String readAuthor(XmlPullParser parser) throws XmlPullParserException, IOException {
+        StringBuilder author = new StringBuilder();
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG)
+                continue;
+            if (parser.getName().equalsIgnoreCase("name")) {
+                author.append(readText(parser)).append(", ");
+            } else {
+                skip(parser);
+            }
+        }
+        return author.toString();
     }
 
     private long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
         String unformatted = readText(parser);
 
         try {
-            Date date = Parser.timeRSS.parse(unformatted);
+            Date date = Parser.timeAtom.parse(unformatted);
             return date.getTime();
         } catch (ParseException e) {
             Log.e("RSSParser", Log.getStackTraceString(e));
         }
 
         return -1;
-    }
-
-    private String readImage(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String res = "";
-        while(parser.next() != XmlPullParser.END_TAG) {
-            if (parser.getEventType() != XmlPullParser.START_TAG)
-                continue;
-
-            String tag = parser.getName();
-            if (tag.equalsIgnoreCase("url")) {
-                res = readText(parser);
-            } else {
-                skip(parser);
-            }
-        }
-        return res;
     }
 }
