@@ -1,1 +1,2 @@
 # android-rss-reader
+This is a work-in-progress feed reader for Android which can read RSS 2.0, RSS 1.0 and Atom feeds. It also works offline because the articles are synced to the storage by using SQLite.
