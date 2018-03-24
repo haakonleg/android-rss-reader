@@ -1,5 +1,7 @@
 package hakkon.android_rss_reader;
 
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,7 +16,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import hakkon.android_rss_reader.feed.Feed;
-import hakkon.android_rss_reader.feed.NavFeedListAdapter;
 import hakkon.android_rss_reader.tasks.FeedParser;
 import hakkon.android_rss_reader.tasks.GetFeeds;
 import hakkon.android_rss_reader.tasks.GetItems;
@@ -25,7 +26,7 @@ import hakkon.android_rss_reader.util.NetworkState;
 public class HomeActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
     private DrawerLayout drawerLayout;
     private RecyclerView feedsList;
-    private NavFeedListAdapter feedsListAdapter;
+    private NavRecyclerAdapter navAdapter;
     private FloatingActionButton addFeedBtn;
     private AddFeedFragment addFeedFragment;
 
@@ -33,6 +34,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         // Set up actionbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -47,8 +50,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         this.addFeedBtn = findViewById(R.id.nav_add_feed_btn);
 
         // Set up nav feed list
-        this.feedsListAdapter = new NavFeedListAdapter(this, new FeedsListListener());
-        this.feedsList.setAdapter(this.feedsListAdapter);
+        this.navAdapter = new NavRecyclerAdapter(this, new NavListener());
+        this.feedsList.setAdapter(this.navAdapter);
 
         // Add feed click listener
         this.addFeedFragment = new AddFeedFragment();
@@ -79,7 +82,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
 
             boolean hasNetwork = NetworkState.hasNetwork(this);
             for (Feed feed : feeds) {
-                this.feedsListAdapter.addItem(feed);
+                this.navAdapter.addFeed(feed);
                 // Update feed if we have an internet connection
                 if (hasNetwork)
                     updateFeed(feed.getOriginLink(), false);
@@ -105,48 +108,72 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
             } else if (error == -3) {
                 Messages.showError(this, "There was an error parsing this feed: " + url, null);
             } else if (addToDrawer) {
-                this.feedsListAdapter.addItem(feed);
+                this.navAdapter.addFeed(feed);
             }
         });
         ThreadPool.getInstance().execute(parser);
     }
 
     private void displayFeed(Feed feed) {
+        getSupportFragmentManager().popBackStack();
         GetItems task = new GetItems(this, feed.getOriginLink(), (error, items) -> {
             ViewFeedFragment fragment = ViewFeedFragment.newInstance(feed.getTitle(), items);
-            getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(
-                    android.R.anim.slide_in_left,
-                    android.R.anim.slide_out_right,
-                    android.R.anim.slide_in_left,
-                    android.R.anim.slide_out_right)
-                    .replace(R.id.content_layout, fragment)
-                    .addToBackStack("ViewFeed").commit();
+            displayContent(fragment, "ViewFeed");
         });
         ThreadPool.getInstance().execute(task);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            FragmentManager fm = getSupportFragmentManager();
-            int cnt = fm.getBackStackEntryCount();
-            if (cnt > 0 && fm.getBackStackEntryAt(cnt-1).getName().equals("ViewArticle")) {
-                fm.popBackStack();
-            } else {
-                this.drawerLayout.openDrawer(GravityCompat.START);
-            }
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    private void displayContent(Fragment fragment, String tag) {
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        android.R.anim.slide_in_left,
+                        android.R.anim.slide_out_right,
+                        android.R.anim.slide_in_left,
+                        android.R.anim.slide_out_right)
+                .replace(R.id.content_layout, fragment)
+                .addToBackStack(tag).commit();
     }
 
-    private class FeedsListListener implements NavFeedListAdapter.OnItemClicked {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        FragmentManager fm = getSupportFragmentManager();
+        int cnt = fm.getBackStackEntryCount();
+
+        if (cnt > 0) {
+            String name = fm.getBackStackEntryAt(cnt-1).getName();
+            if (name.equals("ViewArticle") || name.equals("Settings"))
+                fm.popBackStack();
+            else
+                this.drawerLayout.openDrawer(GravityCompat.START);
+        } else {
+            this.drawerLayout.openDrawer(GravityCompat.START);
+        }
+        return true;
+    }
+
+    private class NavListener implements NavRecyclerAdapter.OnItemClicked {
         @Override
-        public void onClick(int position) {
-            Feed feed = feedsListAdapter.getItem(position);
+        public void onClickButton(int button) {
+            if (button == R.id.nav_home_btn) {
+                getSupportFragmentManager().popBackStack();
+            } else if (button == R.id.nav_settings_btn) {
+                getSupportActionBar().setTitle("Settings");
+                displayContent(new SettingsFragment(), "Settings");
+            }
+
+            new Handler().postDelayed(() -> {
+                drawerLayout.closeDrawers();
+            }, 100);
+        }
+
+        @Override
+        public void onClickFeed(int position) {
+            Feed feed = navAdapter.getFeed(position);
             displayFeed(feed);
+
+            new Handler().postDelayed(() -> {
+                drawerLayout.closeDrawers();
+            }, 100);
         }
     }
 
@@ -163,11 +190,10 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         }
 
         String name = fm.getBackStackEntryAt(cnt-1).getName();
-        if (name == null) return;
-        if (name.equals("ViewFeed")) {
+        if (name == null || name.equals("ViewFeed")) {
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        } else if (name.equals("ViewArticle")) {
+        } else if (name.equals("ViewArticle") || name.equals("Settings")) {
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_24dp);
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }

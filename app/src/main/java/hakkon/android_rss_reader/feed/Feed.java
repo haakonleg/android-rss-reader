@@ -50,7 +50,7 @@ public class Feed implements Parcelable {
         this.updated = -1;
     }
 
-    /*public void addItem(FeedItem item) {
+    /*public void addFeed(FeedItem item) {
         this.feedItems.add(item);
     }*/
 

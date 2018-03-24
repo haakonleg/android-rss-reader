@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <Button
+        android:id="@+id/nav_manage_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_rss_feed_24dp"
+        android:drawablePadding="5dp"
+        android:text="@string/nav_manage_subscriptions"
+        android:textAlignment="textStart"
+        android:textAppearance="@android:style/TextAppearance.Material" />
+
+    <Button
+        android:id="@+id/nav_settings_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_settings_24dp"
+        android:drawablePadding="5dp"
+        android:text="@string/nav_settings"
+        android:textAlignment="textStart"
+        android:textAppearance="@android:style/TextAppearance.Material" />
+
+</LinearLayout>

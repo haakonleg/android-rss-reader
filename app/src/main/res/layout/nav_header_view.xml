@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Material"
+        android:textSize="18sp"
+        android:text="@string/app_name"/>
+
+    <Button
+        android:id="@+id/nav_home_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_home_24dp"
+        android:drawablePadding="5dp"
+        android:text="@string/nav_recent_articles"
+        android:textAlignment="textStart"
+        android:textAppearance="@android:style/TextAppearance.Material" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nav_my_subscriptions" />
+
+</LinearLayout>

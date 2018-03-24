@@ -1,10 +1,23 @@
 <resources>
     <string name="app_name">android-rss-reader</string>
 
-    <string name="nav_home">Home</string>
-    <string name="nav_feeds">My Feeds</string>
+    <string name="nav_recent_articles">Recent Articles</string>
+    <string name="nav_my_subscriptions">My Subscriptions</string>
+    <string name="nav_manage_subscriptions">Manage Subscriptions</string>
+    <string name="nav_settings">Settings</string>
 
     <string name="popup_text">URL to RSS/Atom feed</string>
     <string name="popup_placeholder">URL</string>
     <string name="popup_add">Add</string>
+
+    <string name="pref_feeds">Feeds</string>
+    <string name="pref_max_articles_title">Number of Articles</string>
+    <string name="pref_max_articles_summary">Select the max number of articles to display per feed</string>
+    <string-array name="pref_max_articles_entries">
+        <item>25</item>
+        <item>50</item>
+        <item>75</item>
+        <item>100</item>
+    </string-array>
+    <string name="pref_max_articles_default">25</string>
 </resources>

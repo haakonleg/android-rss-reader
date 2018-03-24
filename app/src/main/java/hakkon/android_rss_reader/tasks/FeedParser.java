@@ -1,7 +1,9 @@
 package hakkon.android_rss_reader.tasks;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteException;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import hakkon.android_rss_reader.R;
 import hakkon.android_rss_reader.database.Database;
 import hakkon.android_rss_reader.database.FeedDatabase;
 import hakkon.android_rss_reader.feed.Feed;
@@ -98,7 +101,19 @@ public class FeedParser extends BaseTask<Feed> {
                     toInsert.add(item);
                 }
             }
+            // Insert the items
             db.feedItemDAO().insertItems(toInsert);
+
+            // Determine if we need to delete old feeds (max feeds reached)
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
+            int max = Integer.parseInt(prefs.getString("max_articles", callingActivity.getString(R.string.pref_max_articles_default)));
+            int feedCount = db.feedItemDAO().getCount(this.url);
+            Log.e("FEEDCOUNT", "FeedCount: " + Integer.toString(feedCount) + " " + this.url);
+
+            if (feedCount > max) {
+                db.feedItemDAO().deleteOldest(this.url, feedCount - max);
+            }
+
         } catch (SQLiteException e) {
             Log.e("FeedParser", Log.getStackTraceString(e));
         }

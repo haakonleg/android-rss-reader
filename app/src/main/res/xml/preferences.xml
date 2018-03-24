@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_feeds">
+
+        <ListPreference
+            android:key="max_articles"
+            android:title="@string/pref_max_articles_title"
+            android:summary="@string/pref_max_articles_summary"
+            android:entries="@array/pref_max_articles_entries"
+            android:entryValues="@array/pref_max_articles_entries"
+            android:defaultValue="@string/pref_max_articles_default"/>
+
+    </PreferenceCategory>
+</PreferenceScreen>
