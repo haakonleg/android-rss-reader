@@ -1,14 +1,12 @@
 package hakkon.android_rss_reader.tasks;
 
 import android.app.Activity;
-import android.util.Log;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import hakkon.android_rss_reader.database.Database;
 import hakkon.android_rss_reader.database.FeedDatabase;
-import hakkon.android_rss_reader.feed.Feed;
+import hakkon.android_rss_reader.database.Feed;
 
 /**
  * Created by hakkon on 21.03.18.

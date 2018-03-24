@@ -1,4 +1,4 @@
-package hakkon.android_rss_reader.feed;
+package hakkon.android_rss_reader.database;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;

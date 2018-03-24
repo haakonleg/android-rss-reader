@@ -23,14 +23,18 @@ public class DownloadFeed {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setInstanceFollowRedirects(true);
 
-        // Read data
+        // Data reader
         BufferedReader in;
-        if (conn.getResponseCode() == 301) {
+
+        // Handle response code
+        int response = conn.getResponseCode();
+        if (response == 301) {
             this.url = this.url.replace("http://", "https://");
             return getFeed();
-        }
-
-        if (conn.getResponseCode() == 200) {
+        } else if (response == 302) {
+            this.url = conn.getHeaderField("Location");
+            return getFeed();
+        } else if (response == 200) {
             in = new BufferedReader(
                     new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
         } else {

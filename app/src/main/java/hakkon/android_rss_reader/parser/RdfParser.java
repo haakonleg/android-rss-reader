@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import hakkon.android_rss_reader.feed.FeedItem;
-import hakkon.android_rss_reader.feed.Feed;
+import hakkon.android_rss_reader.database.FeedItem;
+import hakkon.android_rss_reader.database.Feed;
 
 /**
  * Created by hakkon on 19.03.18.

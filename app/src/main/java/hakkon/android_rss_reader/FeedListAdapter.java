@@ -1,4 +1,4 @@
-package hakkon.android_rss_reader.feed;
+package hakkon.android_rss_reader;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import hakkon.android_rss_reader.R;
+import hakkon.android_rss_reader.database.FeedItem;
 
 public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHolder> {
     private Activity activity;

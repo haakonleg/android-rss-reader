@@ -15,7 +15,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import hakkon.android_rss_reader.feed.Feed;
+import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.tasks.FeedParser;
 import hakkon.android_rss_reader.tasks.GetFeeds;
 import hakkon.android_rss_reader.tasks.GetItems;

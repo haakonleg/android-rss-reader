@@ -6,12 +6,10 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
-import hakkon.android_rss_reader.feed.Feed;
-import hakkon.android_rss_reader.feed.FeedItem;
+import hakkon.android_rss_reader.database.Feed;
+import hakkon.android_rss_reader.database.FeedItem;
 
 /**
  * Created by hakkon on 19.03.18.

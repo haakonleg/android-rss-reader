@@ -6,7 +6,7 @@ import java.util.List;
 
 import hakkon.android_rss_reader.database.Database;
 import hakkon.android_rss_reader.database.FeedDatabase;
-import hakkon.android_rss_reader.feed.FeedItem;
+import hakkon.android_rss_reader.database.FeedItem;
 
 /**
  * Created by hakkon on 21.03.18.

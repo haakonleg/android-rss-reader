@@ -12,8 +12,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import hakkon.android_rss_reader.feed.FeedItem;
-import hakkon.android_rss_reader.feed.FeedListAdapter;
+import hakkon.android_rss_reader.database.FeedItem;
 
 /**
  * A simple {@link Fragment} subclass.

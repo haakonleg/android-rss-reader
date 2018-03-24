@@ -14,7 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import hakkon.android_rss_reader.feed.Feed;
+import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.tasks.GetBitmap;
 
 public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

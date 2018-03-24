@@ -12,11 +12,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import hakkon.android_rss_reader.R;
 import hakkon.android_rss_reader.database.Database;
 import hakkon.android_rss_reader.database.FeedDatabase;
-import hakkon.android_rss_reader.feed.Feed;
-import hakkon.android_rss_reader.feed.FeedItem;
+import hakkon.android_rss_reader.database.Feed;
+import hakkon.android_rss_reader.database.FeedItem;
 import hakkon.android_rss_reader.network.DownloadFeed;
 import hakkon.android_rss_reader.parser.AtomParser;
 import hakkon.android_rss_reader.parser.Parser;
@@ -91,7 +90,7 @@ public class FeedParser extends BaseTask<Feed> {
     private void saveItemsToDb(List<FeedItem> items) {
         FeedDatabase db = Database.getInstance(callingActivity.getApplicationContext());
 
-        // Determine newly updated feeds to add
+        // Determine newly updated articles to add
         try {
             ArrayList<FeedItem> toInsert = new ArrayList<>();
             long lastDate = db.feedItemDAO().getNewestItem(this.url);
@@ -104,11 +103,11 @@ public class FeedParser extends BaseTask<Feed> {
             // Insert the items
             db.feedItemDAO().insertItems(toInsert);
 
-            // Determine if we need to delete old feeds (max feeds reached)
+            // Determine if we need to delete old articles (max feeds reached)
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
-            int max = Integer.parseInt(prefs.getString("max_articles", callingActivity.getString(R.string.pref_max_articles_default)));
+            int max = Integer.parseInt(prefs.getString("max_articles", null));
             int feedCount = db.feedItemDAO().getCount(this.url);
-            Log.e("FEEDCOUNT", "FeedCount: " + Integer.toString(feedCount) + " " + this.url);
+            Log.e("ARTICLECOUNT", "ArticleCount: " + Integer.toString(feedCount) + " " + this.url);
 
             if (feedCount > max) {
                 db.feedItemDAO().deleteOldest(this.url, feedCount - max);

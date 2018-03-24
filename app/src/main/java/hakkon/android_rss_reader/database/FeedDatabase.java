@@ -2,11 +2,6 @@ package hakkon.android_rss_reader.database;
 
 import android.arch.persistence.room.*;
 
-import hakkon.android_rss_reader.feed.Feed;
-import hakkon.android_rss_reader.feed.FeedDAO;
-import hakkon.android_rss_reader.feed.FeedItem;
-import hakkon.android_rss_reader.feed.FeedItemDAO;
-
 /**
  * Created by hakkon on 21.03.18.
  */

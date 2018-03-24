@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.TextView;
 
-import hakkon.android_rss_reader.feed.FeedItem;
+import hakkon.android_rss_reader.database.FeedItem;
 
 
 /**

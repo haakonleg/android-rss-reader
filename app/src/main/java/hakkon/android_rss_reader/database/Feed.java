@@ -1,4 +1,4 @@
-package hakkon.android_rss_reader.feed;
+package hakkon.android_rss_reader.database;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
@@ -6,8 +6,6 @@ import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-
-import java.util.ArrayList;
 
 /**
  * Created by hakkon on 12.03.18.
