@@ -22,7 +22,7 @@ import hakkon.android_rss_reader.database.Feed;
 public class RSSParser extends Parser {
     // RFC 822
     private final SimpleDateFormat timeRSS =
-            new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.getDefault());
+            new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
     public RSSParser() throws XmlPullParserException { }
 

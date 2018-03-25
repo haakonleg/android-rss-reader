@@ -23,7 +23,7 @@ import hakkon.android_rss_reader.database.Feed;
 public class RdfParser extends Parser {
     // ISO 8601
     private final SimpleDateFormat timeRdf =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
 
     public RdfParser () throws XmlPullParserException {}
 

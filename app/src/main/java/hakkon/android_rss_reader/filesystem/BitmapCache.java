@@ -6,11 +6,8 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.regex.Matcher;
 
 /**
  * Created by hakkon on 24.03.18.
@@ -66,6 +63,9 @@ public class BitmapCache {
     }
 
     private static long sizeOfDir(File dir) {
+        if (dir.listFiles() == null)
+            return 0;
+        
         long len = 0;
         for (File file : dir.listFiles()) {
             len += file.length();

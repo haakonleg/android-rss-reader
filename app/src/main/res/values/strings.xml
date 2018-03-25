@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">android-rss-reader</string>
+    <string name="app_name">Supreme Feeder</string>
 
     <string name="nav_recent_articles">Recent Articles</string>
     <string name="nav_my_subscriptions">My Subscriptions</string>
@@ -20,4 +20,8 @@
         <item>100</item>
     </string-array>
     <string name="pref_max_articles_default">25</string>
+
+    <string name="pref_max_recent_articles_title">Number of Recent Articles</string>
+    <string name="pref_max_recent_articles_summary">Select the max number of recent articles to display on the home screen</string>
+    <string name="pref_max_recent_articles_default">50</string>
 </resources>

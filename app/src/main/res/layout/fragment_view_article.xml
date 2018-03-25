@@ -1,29 +1,50 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="hakkon.android_rss_reader.ViewArticleFragment"
     android:layout_margin="5dp">
 
-    <TextView
-        android:id="@+id/article_title_txt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="FEED_TITLE"
-        android:textAppearance="@android:style/TextAppearance.Material"
-        android:textSize="24sp" />
-
-    <TextView
-        android:id="@+id/article_footer_txt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="FEED_FOOTER"
-        android:layout_below="@id/article_title_txt"/>
-
-    <WebView
-        android:id="@+id/article_web_view"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/article_footer_txt"/>
-</RelativeLayout>
+        android:orientation="vertical"
+        tools:context="hakkon.android_rss_reader.ViewArticleFragment">
+
+        <TextView
+            android:id="@+id/article_title_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FEED_TITLE"
+            android:textAppearance="@android:style/TextAppearance.Material"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/article_footer_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FEED_FOOTER" />
+
+        <WebView
+            android:id="@+id/article_web_view"
+            android:layout_marginTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/openBrowserBtn"
+        app:fabSize="normal"
+        app:borderWidth="0dp"
+        android:backgroundTint="@color/green"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/ic_globe_24dp"
+        app:srcCompat="@drawable/ic_globe_24dp"
+        android:layout_margin="20dp" />
+
+</FrameLayout>

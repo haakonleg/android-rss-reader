@@ -42,6 +42,14 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         return this.items.get(position);
     }
 
+    public boolean hasFeed(String feedUrl) {
+        for(Feed item : this.items) {
+            if (feedUrl.equals(item.getOriginLink()))
+                return true;
+        }
+        return false;
+    }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

@@ -4,36 +4,42 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import hakkon.android_rss_reader.database.FeedItem;
+import hakkon.android_rss_reader.tasks.GetItems;
+import hakkon.android_rss_reader.tasks.GetRecentItems;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class ViewFeedFragment extends Fragment {
     private RecyclerView feedList;
-    private String feedTitle;
-    private ArrayList<FeedItem> items;
+    private String feedUrl;
+    private Boolean isHome;
     private FeedListAdapter adapter;
 
     public ViewFeedFragment() {
         // Required empty public constructor
     }
 
-    public static ViewFeedFragment newInstance(String title, List<FeedItem> items) {
+    public static ViewFeedFragment newInstanceFeed(String feedUrl) {
         ViewFeedFragment fragment = new ViewFeedFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("feed_title",title);
-        ArrayList<FeedItem> newList = new ArrayList<>(items.size());
-        newList.addAll(items);
-        bundle.putParcelableArrayList("feed_items", newList);
+        bundle.putBoolean("is_home", false);
+        bundle.putString("feed_url", feedUrl);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
+    public static ViewFeedFragment newInstanceHome() {
+        ViewFeedFragment fragment = new ViewFeedFragment();
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("is_home", true);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -49,17 +55,16 @@ public class ViewFeedFragment extends Fragment {
             bundle = getArguments();
 
         if (bundle != null) {
-            this.feedTitle = bundle.getString("feed_title");
-            this.items = bundle.getParcelableArrayList("feed_items");
-            this.adapter = new FeedListAdapter(getActivity(), this.items, new FeedListListener());
+            this.feedUrl = bundle.getString("feed_url");
+            this.isHome = bundle.getBoolean("is_home");
         }
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("feed_title", this.feedTitle);
-        outState.putParcelableArrayList("feed_items", this.items);
+        outState.putString("feed_url", this.feedUrl);
+        outState.putBoolean("is_home", this.isHome);
     }
 
     @Override
@@ -69,11 +74,23 @@ public class ViewFeedFragment extends Fragment {
 
         // Set up recyclerview
         this.feedList = view.findViewById(R.id.feed_recycler_list);
-        this.feedList.setAdapter(this.adapter);
-        this.feedList.setHasFixedSize(true);
+        if (this.isHome) {
+            GetRecentItems recentItems = new GetRecentItems(getActivity(), (error, items) -> {
+                this.adapter = new FeedListAdapter(getActivity(), items, new FeedListListener());
+                this.feedList.setAdapter(this.adapter);
+            });
+            ThreadPool.getInstance().execute(recentItems);
+        } else {
+            GetItems feedItems = new GetItems(getActivity(), this.feedUrl, (error, items) -> {
+                this.adapter = new FeedListAdapter(getActivity(), items, new FeedListListener());
+                this.feedList.setAdapter(this.adapter);
 
-        // Set actionbar title
-        ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.feedTitle);
+                // Set actionbar title
+                ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.adapter.getItem(0).getParentTitle());
+            });
+            ThreadPool.getInstance().execute(feedItems);
+        }
+        this.feedList.setHasFixedSize(true);
 
         return view;
     }
@@ -84,7 +101,7 @@ public class ViewFeedFragment extends Fragment {
         public void onClick(int position) {
             FeedItem article = adapter.getItem(position);
             ViewArticleFragment fragment =
-                    ViewArticleFragment.newInstance(feedTitle, article);
+                    ViewArticleFragment.newInstance(article);
             getActivity().getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(
                             android.R.anim.slide_in_left,

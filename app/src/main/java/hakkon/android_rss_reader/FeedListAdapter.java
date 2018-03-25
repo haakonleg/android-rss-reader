@@ -54,6 +54,7 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
         }
 
         holder.descTxt.setText(desc);
+        holder.parentTxt.setText(item.getParentTitle());
         holder.updatedTxt.setText(item.getAge());
         holder.card.setOnClickListener((v) -> this.listener.onClick(position));
     }
@@ -68,6 +69,7 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
         ImageView feedImg;
         TextView titleTxt;
         TextView descTxt;
+        TextView parentTxt;
         TextView updatedTxt;
 
         ViewHolder(View view) {
@@ -76,6 +78,7 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
             feedImg = view.findViewById(R.id.feed_item_img);
             titleTxt = view.findViewById(R.id.feed_item_title);
             descTxt = view.findViewById(R.id.feed_item_desc);
+            parentTxt = view.findViewById(R.id.feed_item_parent);
             updatedTxt = view.findViewById(R.id.feed_item_updated);
         }
     }

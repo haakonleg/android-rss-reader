@@ -27,11 +27,18 @@ import hakkon.android_rss_reader.parser.RdfParser;
  */
 
 public class FeedParser extends BaseTask<Feed> {
+    public static final int PARSER_ERROR_DOWNLOAD = -1;
+    public static final int PARSER_ERROR_INVALID_FEED = -2;
+    public static final int PARSER_ERROR_PARSE_ERROR = -3;
+    public static final int PARSER_OK = 0;
+
+    private FeedDatabase db;
     private String url;
 
     public FeedParser(Activity ca, String url, TaskCallback<Feed> cb) {
         super(ca, cb);
         this.url = url;
+        this.db = Database.getInstance(callingActivity.getApplicationContext());
     }
 
     @Override
@@ -45,7 +52,7 @@ public class FeedParser extends BaseTask<Feed> {
             data = downloader.getFeed();
         } catch (IOException e) {
             Log.e("FeedParser", Log.getStackTraceString(e));
-            callbackToUI(-1, null);
+            callbackToUI(PARSER_ERROR_DOWNLOAD, null);
             return;
         }
 
@@ -63,33 +70,29 @@ public class FeedParser extends BaseTask<Feed> {
                     result = new RdfParser().parse(data);
                     break;
                 case Parser.TYPE_UNKNOWN:
-                    callbackToUI(-2, null);
+                    callbackToUI(PARSER_ERROR_INVALID_FEED, null);
                     return;
             }
         } catch (IOException | XmlPullParserException e) {
             Log.e("FeedParser", Log.getStackTraceString(e));
-            callbackToUI(-3, null);
+            callbackToUI(PARSER_ERROR_PARSE_ERROR, null);
             return;
         }
 
         result.feed.setOriginLink(this.url);
         saveToDb(result.feed);
-        saveItemsToDb(result.items);
+        saveItemsToDb(result.items, result.feed.getTitle());
 
-        callbackToUI(0, result.feed);
+        callbackToUI(PARSER_OK, result.feed);
     }
 
     private void saveToDb(Feed feed) {
-        FeedDatabase db = Database.getInstance(callingActivity.getApplicationContext());
-
         // Check if it exists already, if not insert
         if (db.feedDao().getFeed(feed.getOriginLink()) == null)
             db.feedDao().insertFeed(feed);
     }
 
-    private void saveItemsToDb(List<FeedItem> items) {
-        FeedDatabase db = Database.getInstance(callingActivity.getApplicationContext());
-
+    private void saveItemsToDb(List<FeedItem> items, String feedTitle) {
         // Determine newly updated articles to add
         try {
             ArrayList<FeedItem> toInsert = new ArrayList<>();
@@ -97,6 +100,7 @@ public class FeedParser extends BaseTask<Feed> {
             for(FeedItem item : items) {
                 if (item.getDate() > lastDate) {
                     item.setParentFeed(this.url);
+                    item.setParentTitle(feedTitle);
                     toInsert.add(item);
                 }
             }

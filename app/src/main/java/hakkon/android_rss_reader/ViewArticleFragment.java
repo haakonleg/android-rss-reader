@@ -1,9 +1,12 @@
 package hakkon.android_rss_reader;
 
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,21 +21,24 @@ import hakkon.android_rss_reader.database.FeedItem;
  * A simple {@link Fragment} subclass.
  */
 public class ViewArticleFragment extends Fragment {
+    // CSS to scale images to fit screen
+    private static final String WEBVIEW_CSS = "<style>img{dislay: inline; height: auto; max-width: 100%;}</style>";
+
     private String feedName;
     private FeedItem article;
 
     private TextView titleTxt;
     private TextView footerTxt;
     private WebView articleWebView;
+    private FloatingActionButton openBrowserBtn;
 
     public ViewArticleFragment() {
         // Required empty public constructor
     }
 
-    public static ViewArticleFragment newInstance(String feedName, FeedItem article) {
+    public static ViewArticleFragment newInstance(FeedItem article) {
         ViewArticleFragment fragment = new ViewArticleFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("feed_name", feedName);
         bundle.putParcelable("feed_item", article);
         fragment.setArguments(bundle);
         return fragment;
@@ -49,7 +55,6 @@ public class ViewArticleFragment extends Fragment {
             bundle = getArguments();
 
         if (bundle != null) {
-            this.feedName = bundle.getString("feed_name");
             this.article = bundle.getParcelable("feed_item");
         }
     }
@@ -57,7 +62,6 @@ public class ViewArticleFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("feed_name", this.feedName);
         outState.putParcelable("feed_item", this.article);
     }
 
@@ -65,12 +69,23 @@ public class ViewArticleFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_view_article, container, false);
+
+        // Find elements
         this.titleTxt = view.findViewById(R.id.article_title_txt);
         this.footerTxt = view.findViewById(R.id.article_footer_txt);
         this.articleWebView = view.findViewById(R.id.article_web_view);
+        this.openBrowserBtn = view.findViewById(R.id.openBrowserBtn);
+
+        this.articleWebView.setBackgroundColor(getResources().getColor(R.color.windowBackground));
+
+        // Open article in browser
+        this.openBrowserBtn.setOnClickListener((v) -> {
+            Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(this.article.getLink()));
+            startActivity(browser);
+        });
 
         this.titleTxt.setText(this.article.getTitle());
-        this.footerTxt.setText(this.feedName);
+        this.footerTxt.setText(this.article.getParentTitle() + " / " + this.article.getFormattedDate());
 
         String articleContents = "";
         if (!this.article.getEncodedContent().isEmpty())
@@ -78,14 +93,8 @@ public class ViewArticleFragment extends Fragment {
         else
             articleContents = this.article.getDescription();
 
-        this.articleWebView.loadData(
-                getOpenArticleHtml(this.article.getLink()) + articleContents,
-                "text/html", null);
+        this.articleWebView.loadData(WEBVIEW_CSS + articleContents,"text/html", null);
 
         return view;
-    }
-
-    private String getOpenArticleHtml(String url) {
-        return "<a href=\"" + url + "\">" + "View article in browser</a><br><br>";
     }
 }

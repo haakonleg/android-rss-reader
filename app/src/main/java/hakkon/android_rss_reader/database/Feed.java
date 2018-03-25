@@ -3,8 +3,6 @@ package hakkon.android_rss_reader.database;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 /**
@@ -12,7 +10,7 @@ import android.support.annotation.NonNull;
  */
 
 @Entity
-public class Feed implements Parcelable {
+public class Feed {
     @NonNull
     @PrimaryKey
     @ColumnInfo(name = "feed_origin")
@@ -44,17 +42,8 @@ public class Feed implements Parcelable {
         this.link = "";
         this.description = "No description";
         this.image = "";
-        //this.feedItems = new ArrayList<>();
         this.updated = -1;
     }
-
-    /*public void addFeed(FeedItem item) {
-        this.feedItems.add(item);
-    }*/
-
-    /*public ArrayList<FeedItem> getItems() {
-        return this.feedItems;
-    }*/
 
     public String getTitle() {
         return title;
@@ -112,40 +101,4 @@ public class Feed implements Parcelable {
     public void setPosition(int position) {
         this.position = position;
     }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.title);
-        dest.writeString(this.link);
-        dest.writeString(this.description);
-        dest.writeString(this.image);
-        //dest.writeList(this.feedItems);
-        dest.writeLong(this.updated);
-    }
-
-    private Feed(Parcel in) {
-        this.title = in.readString();
-        this.link = in.readString();
-        this.description = in.readString();
-        this.image = in.readString();
-        //this.feedItems = in.readArrayList(FeedItem.class.getClassLoader());
-        this.updated = in.readLong();
-    }
-
-    private static final Creator<Feed> CREATOR = new Creator<Feed>() {
-        @Override
-        public Feed createFromParcel(Parcel source) {
-            return new Feed(source);
-        }
-
-        @Override
-        public Feed[] newArray(int size) {
-            return new Feed[0];
-        }
-    };
 }

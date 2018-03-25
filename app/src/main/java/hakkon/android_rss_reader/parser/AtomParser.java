@@ -18,7 +18,7 @@ import hakkon.android_rss_reader.database.Feed;
 public class AtomParser extends Parser {
     // RFC 3399
     private final SimpleDateFormat timeAtom =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault());
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH);
 
     public AtomParser() throws XmlPullParserException { }
 

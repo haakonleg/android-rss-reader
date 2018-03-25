@@ -25,8 +25,18 @@ public class DownloadBitmap {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setInstanceFollowRedirects(true);
 
+        // Data reader
         BufferedInputStream in;
-        if (conn.getResponseCode() == 200) {
+
+        // Handle response code
+        int response = conn.getResponseCode();
+        if (response == 301) {
+            this.url = this.url.replace("http://", "https://");
+            return getBitmap();
+        } else if (response == 302) {
+            this.url = conn.getHeaderField("Location");
+            return getBitmap();
+        } else if (conn.getResponseCode() == 200) {
             in = new BufferedInputStream(conn.getInputStream());
         } else {
             Log.e("URL", this.url);

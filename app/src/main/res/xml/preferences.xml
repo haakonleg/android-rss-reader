@@ -11,5 +11,13 @@
             android:entryValues="@array/pref_max_articles_entries"
             android:defaultValue="@string/pref_max_articles_default"/>
 
+        <ListPreference
+            android:key="max_recent_articles"
+            android:title="@string/pref_max_recent_articles_title"
+            android:summary="@string/pref_max_recent_articles_summary"
+            android:entries="@array/pref_max_articles_entries"
+            android:entryValues="@array/pref_max_articles_entries"
+            android:defaultValue="@string/pref_max_recent_articles_default"/>
+
     </PreferenceCategory>
 </PreferenceScreen>

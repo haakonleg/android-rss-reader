@@ -3,20 +3,32 @@ package hakkon.android_rss_reader.database;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * Created by hakkon on 12.03.18.
  */
 
-@Entity(primaryKeys = {"item_parent", "item_link"})
+@Entity
 public class FeedItem implements Parcelable {
-    @NonNull
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm", Locale.getDefault());
+
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
     @ColumnInfo(name = "item_parent")
     @ForeignKey(entity = Feed.class, parentColumns = "feed_origin", childColumns = "item_parent")
     private String parentFeed;
+
+    @ColumnInfo(name = "item_parent_title")
+    @ForeignKey(entity = Feed.class, parentColumns = "feed_title", childColumns = "item_parent_title")
+    private String parentTitle;
 
     @ColumnInfo(name = "item_title")
     private String title;
@@ -100,6 +112,22 @@ public class FeedItem implements Parcelable {
         this.parentFeed = parentFeed;
     }
 
+    public String getParentTitle() {
+        return parentTitle;
+    }
+
+    public void setParentTitle(String parentTitle) {
+        this.parentTitle = parentTitle;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getAge() {
         long curr = System.currentTimeMillis();
         int min = (int)((curr - this.date) / (1000*60));
@@ -113,8 +141,13 @@ public class FeedItem implements Parcelable {
             return Integer.toString(min / (60*24)) + " days ago";
     }
 
+    public String getFormattedDate() {
+        return sdf.format(this.date);
+    }
+
     private FeedItem(Parcel in) {
         this.parentFeed = in.readString();
+        this.parentTitle = in.readString();
         this.title = in.readString();
         this.link = in.readString();
         this.description = in.readString();
@@ -143,6 +176,7 @@ public class FeedItem implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.parentFeed);
+        dest.writeString(this.parentTitle);
         dest.writeString(this.title);
         dest.writeString(this.link);
         dest.writeString(this.description);
