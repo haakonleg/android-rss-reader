@@ -107,7 +107,7 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         Feed item = this.items.get(position);
 
         String imageUrl = item.getImage();
-        if (!imageUrl.isEmpty()) {
+        if (imageUrl != null) {
             GetBitmap bitmapTask = new GetBitmap(this.activity, imageUrl, (error, bitmap) -> {
                 if (bitmap != null)
                     holder.feedImg.setImageBitmap(bitmap);

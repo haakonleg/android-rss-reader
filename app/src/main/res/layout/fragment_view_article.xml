@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:text="FEED_TITLE"
             android:textAppearance="@android:style/TextAppearance.Material"
-            android:textSize="24sp" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/article_footer_txt"

@@ -4,15 +4,20 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
+
 import java.util.List;
 
 import hakkon.android_rss_reader.database.FeedItem;
+import hakkon.android_rss_reader.tasks.GetBitmap;
 
 public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHolder> {
     private Activity activity;
@@ -43,17 +48,33 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FeedItem item = this.items.get(position);
 
-        // TODO: Load image
+        // Set image
+        String imgUrl = item.getImage();
+        if (imgUrl != null) {
+            GetBitmap bitmapTask = new GetBitmap(this.activity, imgUrl, (error, bitmap) -> {
+                if (bitmap != null)
+                    holder.feedImg.setImageBitmap(bitmap);
+            });
+            ThreadPool.getInstance().execute(bitmapTask);
+        }
 
         holder.titleTxt.setText(item.getTitle());
 
+
+        // Determine what to display as description
+        String desc = "No description";
+        if (item.getDescription() != null) {
+            desc = item.getDescription();
+        } else if (item.getEncodedContent() != null) {
+            desc = item.getEncodedContent();
+        }
+
         // Don't display the whole description
-        String desc = item.getDescription();
         if (desc.length() > 80) {
             desc = desc.substring(0, 80) + "...";
         }
 
-        holder.descTxt.setText(desc);
+        holder.descTxt.setText(Jsoup.clean(desc, Whitelist.none()));
         holder.parentTxt.setText(item.getParentTitle());
         holder.updatedTxt.setText(item.getAge());
         holder.card.setOnClickListener((v) -> this.listener.onClick(position));

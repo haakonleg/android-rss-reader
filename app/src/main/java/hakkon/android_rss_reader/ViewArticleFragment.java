@@ -87,10 +87,10 @@ public class ViewArticleFragment extends Fragment {
         this.titleTxt.setText(this.article.getTitle());
         this.footerTxt.setText(this.article.getParentTitle() + " / " + this.article.getFormattedDate());
 
-        String articleContents = "";
-        if (!this.article.getEncodedContent().isEmpty())
+        String articleContents = "No contents";
+        if (this.article.getEncodedContent() != null)
             articleContents = this.article.getEncodedContent();
-        else
+        else if (this.article.getDescription() != null)
             articleContents = this.article.getDescription();
 
         this.articleWebView.loadData(WEBVIEW_CSS + articleContents,"text/html", null);

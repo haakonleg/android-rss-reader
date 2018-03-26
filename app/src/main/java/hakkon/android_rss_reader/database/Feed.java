@@ -34,16 +34,7 @@ public class Feed {
     @ColumnInfo(name = "feed_updated")
     private long updated;
 
-    //private ArrayList<FeedItem> feedItems;
-
-    public Feed() {
-        this.originLink = "";
-        this.title = "No title";
-        this.link = "";
-        this.description = "No description";
-        this.image = "";
-        this.updated = -1;
-    }
+    public Feed() { }
 
     public String getTitle() {
         return title;

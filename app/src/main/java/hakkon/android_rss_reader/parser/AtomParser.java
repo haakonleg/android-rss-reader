@@ -81,6 +81,9 @@ public class AtomParser extends Parser {
             }
         }
 
+        if (item.getImage() == null) {
+            findImage(item);
+        }
         return item;
     }
 

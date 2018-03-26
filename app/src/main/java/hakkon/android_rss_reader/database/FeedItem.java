@@ -49,14 +49,10 @@ public class FeedItem implements Parcelable {
     @ColumnInfo(name = "item_encoded")
     private String encodedContent;
 
-    public FeedItem() {
-        this.title = "No title";
-        this.link = "";
-        this.description = "No description";
-        this.author = "No author";
-        this.date = -1;
-        this.encodedContent = "";
-    }
+    @ColumnInfo(name = "item_img")
+    private String image;
+
+    public FeedItem() { }
 
     public String getTitle() {
         return title;
@@ -128,6 +124,14 @@ public class FeedItem implements Parcelable {
         this.id = id;
     }
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
     public String getAge() {
         long curr = System.currentTimeMillis();
         int min = (int)((curr - this.date) / (1000*60));
@@ -154,6 +158,7 @@ public class FeedItem implements Parcelable {
         this.author = in.readString();
         this.date = in.readLong();
         this.encodedContent = in.readString();
+        this.image = in.readString();
     }
 
     public static final Creator<FeedItem> CREATOR = new Creator<FeedItem>() {
@@ -183,5 +188,6 @@ public class FeedItem implements Parcelable {
         dest.writeString(this.author);
         dest.writeLong(this.date);
         dest.writeString(this.encodedContent);
+        dest.writeString(this.image);
     }
 }

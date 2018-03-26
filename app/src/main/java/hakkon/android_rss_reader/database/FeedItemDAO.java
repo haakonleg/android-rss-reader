@@ -29,6 +29,9 @@ public interface FeedItemDAO {
             "(SELECT item_date FROM FeedItem WHERE item_parent = :parent ORDER BY item_date ASC LIMIT 0,:count)")
     void deleteOldest(String parent, int count);
 
+    @Query("DELETE FROM FeedItem")
+    void deleteAll();
+
     @Insert
     void insertItems(List<FeedItem> items);
 

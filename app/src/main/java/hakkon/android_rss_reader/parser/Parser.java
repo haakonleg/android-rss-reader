@@ -1,5 +1,11 @@
 package hakkon.android_rss_reader.parser;
 
+import android.util.Log;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -49,6 +55,23 @@ public abstract class Parser {
 
     // Must be implemented
     public abstract ParserResult parse(String xml) throws XmlPullParserException, IOException;
+
+    /**
+     * Finds an image url in the HTML source
+     * @param item The FeedItem to find image for
+     */
+    void findImage(FeedItem item) {
+        String htmlString = "";
+        if (item.getEncodedContent() != null)
+            htmlString = item.getEncodedContent();
+        else if (item.getDescription() != null)
+            htmlString = item.getDescription();
+
+        Document html = Jsoup.parse(htmlString);
+        Element image = html.selectFirst("img");
+        if (image != null)
+            item.setImage(image.attr("src"));
+    }
 
     String readText(XmlPullParser parser) throws XmlPullParserException, IOException {
         String res = "";

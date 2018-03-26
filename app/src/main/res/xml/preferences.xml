@@ -9,7 +9,7 @@
             android:summary="@string/pref_max_articles_summary"
             android:entries="@array/pref_max_articles_entries"
             android:entryValues="@array/pref_max_articles_entries"
-            android:defaultValue="@string/pref_max_articles_default"/>
+            android:defaultValue="@string/pref_max_articles_default" />
 
         <ListPreference
             android:key="max_recent_articles"
@@ -17,7 +17,17 @@
             android:summary="@string/pref_max_recent_articles_summary"
             android:entries="@array/pref_max_articles_entries"
             android:entryValues="@array/pref_max_articles_entries"
-            android:defaultValue="@string/pref_max_recent_articles_default"/>
+            android:defaultValue="@string/pref_max_recent_articles_default" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_misc">
+
+        <Preference
+            android:key="clear_cache"
+            android:title="@string/pref_clear_cache_title"
+            android:summary="@string/pref_clear_cache_summary" />
 
     </PreferenceCategory>
 </PreferenceScreen>

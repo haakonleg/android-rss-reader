@@ -40,7 +40,7 @@ public class BitmapCache {
 
         // Check if cache is full
         if (sizeOfDir(cacheDir) >=  CACHE_SIZE)
-            deleteOld(context, cacheDir);
+            deleteOld(cacheDir);
     }
 
     /**
@@ -51,8 +51,6 @@ public class BitmapCache {
      */
     public static Bitmap loadImage(Context context, String url) {
         File cacheDir = new File(context.getFilesDir(), CACHE_DIR);
-
-        Log.e("CACHESIZE", Long.toString(sizeOfDir(cacheDir)));
 
         File bitmapFile = new File(cacheDir, url.replace("/", "\\"));
 
@@ -73,7 +71,15 @@ public class BitmapCache {
         return len;
     }
 
-    private static void deleteOld(Context context, File cacheDir) {
+    public static void clear(Context context) {
+        File cacheDir = new File(context.getFilesDir(), CACHE_DIR);
+        for (File file : cacheDir.listFiles()) {
+            if (file.isFile())
+                file.delete();
+        }
+    }
+
+    private static void deleteOld(File cacheDir) {
         File[] files = cacheDir.listFiles();
 
         File oldest = files[0];

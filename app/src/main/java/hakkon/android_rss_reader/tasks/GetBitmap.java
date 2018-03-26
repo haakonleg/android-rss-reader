@@ -35,6 +35,7 @@ public class GetBitmap extends BaseTask<Bitmap> {
             } catch (IOException e) {
                 Log.e("GetBitmap", Log.getStackTraceString(e));
                 callbackToUI(-1, null);
+                return;
             }
             BitmapCache.saveImage(callingActivity, this.url, this.bitmap);
         } else {

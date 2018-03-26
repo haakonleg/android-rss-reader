@@ -87,6 +87,10 @@ public class RSSParser extends Parser {
                 skip(parser);
             }
         }
+
+        if (item.getImage() == null) {
+            findImage(item);
+        }
         return item;
     }
 
