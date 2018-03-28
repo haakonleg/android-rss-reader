@@ -4,21 +4,37 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
+import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.database.FeedItem;
+import hakkon.android_rss_reader.tasks.BaseTask;
+import hakkon.android_rss_reader.tasks.FeedParser;
+import hakkon.android_rss_reader.tasks.GetFeeds;
 import hakkon.android_rss_reader.tasks.GetItems;
 import hakkon.android_rss_reader.tasks.GetRecentItems;
+import hakkon.android_rss_reader.util.Messages;
+import hakkon.android_rss_reader.util.NetworkState;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class ViewFeedFragment extends Fragment {
+    private SwipeRefreshLayout refreshLayout;
     private RecyclerView feedList;
+    private ProgressBar progressBar;
     private String feedUrl;
     private Boolean isHome;
     private FeedListAdapter adapter;
@@ -57,6 +73,7 @@ public class ViewFeedFragment extends Fragment {
         if (bundle != null) {
             this.feedUrl = bundle.getString("feed_url");
             this.isHome = bundle.getBoolean("is_home");
+            this.adapter = new FeedListAdapter(getActivity(), new FeedListListener());
         }
     }
 
@@ -72,24 +89,38 @@ public class ViewFeedFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_view_feed, container, false);
 
-        // Set up recyclerview
+        // Find elements
+        this.refreshLayout = view.findViewById(R.id.feed_refresh_layout);
+        this.progressBar = view.findViewById(R.id.feed_progressbar);
         this.feedList = view.findViewById(R.id.feed_recycler_list);
-        if (this.isHome) {
-            GetRecentItems recentItems = new GetRecentItems(getActivity(), (error, items) -> {
-                this.adapter = new FeedListAdapter(getActivity(), items, new FeedListListener());
-                this.feedList.setAdapter(this.adapter);
-            });
-            ThreadPool.getInstance().execute(recentItems);
-        } else {
-            GetItems feedItems = new GetItems(getActivity(), this.feedUrl, (error, items) -> {
-                this.adapter = new FeedListAdapter(getActivity(), items, new FeedListListener());
-                this.feedList.setAdapter(this.adapter);
-            });
-            ThreadPool.getInstance().execute(feedItems);
-        }
+
+        // Swipe to refresh
+        this.refreshLayout.setOnRefreshListener(new ManualRefresh());
+
+        // Set up recyclerview
+        this.feedList.setAdapter(this.adapter);
         this.feedList.setHasFixedSize(true);
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Get articles from cache
+        BaseTask fetchTask;
+        BaseTask.TaskCallback<List<FeedItem>> callback = (error, items) -> {
+            this.adapter.addItems(items);
+            this.progressBar.setVisibility(View.GONE);
+        };
+
+        if (this.isHome)
+            fetchTask = new GetRecentItems(getActivity(), callback);
+        else
+            fetchTask = new GetItems(getActivity(), this.feedUrl, callback);
+
+        ThreadPool.getInstance().execute(fetchTask);
     }
 
     // Listener for when an article is clicked
@@ -99,14 +130,58 @@ public class ViewFeedFragment extends Fragment {
             FeedItem article = adapter.getItem(position);
             ViewArticleFragment fragment =
                     ViewArticleFragment.newInstance(article);
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(
-                            android.R.anim.slide_in_left,
-                            android.R.anim.slide_out_right,
-                            android.R.anim.slide_in_left,
-                            android.R.anim.slide_out_right)
-                    .replace(R.id.content_layout, fragment)
-                    .addToBackStack("ViewArticle").commit();
+            ((HomeActivity)getActivity()).displayContent(fragment, "ViewArticle");
+        }
+    }
+
+    private class ManualRefresh implements SwipeRefreshLayout.OnRefreshListener {
+        @Override
+        public void onRefresh() {
+            // Check connection first
+            if (!NetworkState.hasNetwork(getActivity())) {
+                Messages.showToast(getActivity(), "No network connection");
+                refreshLayout.setRefreshing(false);
+                return;
+            }
+
+            // If is home, refresh all feeds
+            if (isHome) {
+                List<Feed> feeds = ((HomeActivity)getActivity()).navAdapter.getFeeds();
+                List<FeedItem> updatedItems = new ArrayList<>();
+
+                for(ListIterator<Feed> iter = feeds.listIterator(); iter.hasNext();) {
+                    int index = iter.nextIndex();
+                    Feed feed = iter.next();
+
+                    FeedParser updateTask = new FeedParser(getActivity(), feed.getOriginLink(), (error1, result) -> {
+                        updatedItems.addAll(result.items);
+
+                        // Run when all feeds are updated
+                        if (index == feeds.size() - 1) {
+                            if (updatedItems.size() > 0)
+                                adapter.addItems(updatedItems);
+
+                            Messages.showToast(getActivity(), "New items: " + Integer.toString(updatedItems.size()));
+                            refreshLayout.setRefreshing(false);
+                        }
+                    });
+                    ThreadPool.getInstance().execute(updateTask);
+                }
+
+                // Else refresh only this feed
+            } else {
+                FeedParser updateTask = new FeedParser(getActivity(), feedUrl, (error, result) -> {
+                    if (result.items.size() > 0)
+                        adapter.addItems(result.items);
+
+                    Messages.showToast(getActivity(), "New items: " + Integer.toString(result.items.size()));
+                    refreshLayout.setRefreshing(false);
+                });
+                ThreadPool.getInstance().execute(updateTask);
+            }
+
+            // Scroll to top
+            feedList.scrollToPosition(0);
         }
     }
 }

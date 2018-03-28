@@ -38,6 +38,10 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         this.notifyItemInserted(getItemCount() - 1);
     }
 
+    public List<Feed> getFeeds() {
+        return this.items;
+    }
+
     public Feed getFeed(int position) {
         return this.items.get(position);
     }

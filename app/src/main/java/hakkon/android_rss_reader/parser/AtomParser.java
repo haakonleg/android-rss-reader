@@ -22,9 +22,7 @@ public class AtomParser extends Parser {
     }
 
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
-        ParserResult result = new ParserResult();
-        result.feed = new Feed();
-        result.items = new ArrayList<>();
+        ParserResult result = new ParserResult(new Feed(), new ArrayList<>());
         StringReader in = new StringReader(xml);
 
         parser.setInput(in);

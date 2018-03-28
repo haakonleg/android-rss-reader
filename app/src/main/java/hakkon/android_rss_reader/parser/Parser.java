@@ -162,8 +162,13 @@ public abstract class Parser {
         return -1;
     }
 
-    public class ParserResult {
+    public static class ParserResult {
         public Feed feed;
         public List<FeedItem> items;
+
+        public ParserResult(Feed feed, List<FeedItem> items) {
+            this.feed = feed;
+            this.items = items;
+        }
     }
 }

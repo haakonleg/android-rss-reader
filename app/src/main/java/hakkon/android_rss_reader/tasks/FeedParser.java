@@ -26,7 +26,7 @@ import hakkon.android_rss_reader.parser.RdfParser;
  * Created by hakkon on 12.03.18.
  */
 
-public class FeedParser extends BaseTask<Feed> {
+public class FeedParser extends BaseTask<Parser.ParserResult> {
     public static final int PARSER_ERROR_DOWNLOAD = -1;
     public static final int PARSER_ERROR_INVALID_FEED = -2;
     public static final int PARSER_ERROR_PARSE_ERROR = -3;
@@ -35,7 +35,7 @@ public class FeedParser extends BaseTask<Feed> {
     private FeedDatabase db;
     private String url;
 
-    public FeedParser(Activity ca, String url, TaskCallback<Feed> cb) {
+    public FeedParser(Activity ca, String url, TaskCallback<Parser.ParserResult> cb) {
         super(ca, cb);
         this.url = url;
         this.db = Database.getInstance(callingActivity.getApplicationContext());
@@ -81,9 +81,9 @@ public class FeedParser extends BaseTask<Feed> {
 
         result.feed.setOriginLink(this.url);
         saveToDb(result.feed);
-        saveItemsToDb(result.items, result.feed.getTitle());
+        List<FeedItem> newItems = checkNewItems(result.items, result.feed.getTitle());
 
-        callbackToUI(PARSER_OK, result.feed);
+        callbackToUI(PARSER_OK, new Parser.ParserResult(result.feed, newItems));
     }
 
     private void saveToDb(Feed feed) {
@@ -92,10 +92,10 @@ public class FeedParser extends BaseTask<Feed> {
             db.feedDao().insertFeed(feed);
     }
 
-    private void saveItemsToDb(List<FeedItem> items, String feedTitle) {
+    private List<FeedItem> checkNewItems(List<FeedItem> items, String feedTitle) {
         // Determine newly updated articles to add
+        ArrayList<FeedItem> toInsert = new ArrayList<>();
         try {
-            ArrayList<FeedItem> toInsert = new ArrayList<>();
             long lastDate = db.feedItemDAO().getNewestItem(this.url);
             for(FeedItem item : items) {
                 if (item.getDate() > lastDate) {
@@ -111,14 +111,13 @@ public class FeedParser extends BaseTask<Feed> {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
             int max = Integer.parseInt(prefs.getString("max_articles", null));
             int feedCount = db.feedItemDAO().getCount(this.url);
-            Log.e("ARTICLECOUNT", "ArticleCount: " + Integer.toString(feedCount) + " " + this.url);
 
             if (feedCount > max) {
                 db.feedItemDAO().deleteOldest(this.url, feedCount - max);
             }
-
         } catch (SQLiteException e) {
             Log.e("FeedParser", Log.getStackTraceString(e));
         }
+        return toInsert;
     }
 }

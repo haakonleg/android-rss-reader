@@ -24,7 +24,7 @@ import hakkon.android_rss_reader.util.NetworkState;
 public class HomeActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
     private DrawerLayout drawerLayout;
     private RecyclerView feedsList;
-    private NavRecyclerAdapter navAdapter;
+    public NavRecyclerAdapter navAdapter;
     private FloatingActionButton addFeedBtn;
 
     @Override
@@ -95,7 +95,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     private void updateFeed(String url, boolean addToDrawer) {
-        FeedParser parser = new FeedParser(this, url, (error, feed) -> {
+        FeedParser parser = new FeedParser(this, url, (error, result) -> {
             if (error == FeedParser.PARSER_ERROR_DOWNLOAD) {
                 Messages.showError(this, "There was an error downloading this feed: " + url, null);
             } else if (error == FeedParser.PARSER_ERROR_INVALID_FEED) {
@@ -103,13 +103,13 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
             } else if (error == FeedParser.PARSER_ERROR_PARSE_ERROR) {
                 Messages.showError(this, "There was an error parsing this feed: " + url, null);
             } else if (addToDrawer) {
-                this.navAdapter.addFeed(feed);
+                this.navAdapter.addFeed(result.feed);
             }
         });
         ThreadPool.getInstance().execute(parser);
     }
 
-    private void displayContent(Fragment fragment, String tag) {
+    public void displayContent(Fragment fragment, String tag) {
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(
                         android.R.anim.slide_in_left,

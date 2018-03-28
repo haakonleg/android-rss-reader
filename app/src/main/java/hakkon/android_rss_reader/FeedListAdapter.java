@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +13,7 @@ import android.widget.TextView;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import hakkon.android_rss_reader.database.FeedItem;
@@ -21,14 +21,19 @@ import hakkon.android_rss_reader.tasks.GetBitmap;
 
 public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHolder> {
     private Activity activity;
-    private List<FeedItem> items;
+    private LinkedList<FeedItem> items;
     private OnItemClicked listener;
 
-    public FeedListAdapter(Activity activity, List<FeedItem> items, OnItemClicked listener) {
+    public FeedListAdapter(Activity activity, OnItemClicked listener) {
         super();
         this.activity = activity;
-        this.items = items;
+        this.items = new LinkedList<>();
         this.listener = listener;
+    }
+
+    public void addItems(List<FeedItem> items) {
+        this.items.addAll(0, items);
+        this.notifyDataSetChanged();
     }
 
     public FeedItem getItem(int position) {
