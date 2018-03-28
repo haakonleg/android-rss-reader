@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.TextView;
 
 import hakkon.android_rss_reader.database.FeedItem;
 
@@ -22,13 +21,12 @@ import hakkon.android_rss_reader.database.FeedItem;
  */
 public class ViewArticleFragment extends Fragment {
     // CSS to scale images to fit screen
-    private static final String WEBVIEW_CSS = "<style>img{dislay: inline; height: auto; max-width: 100%;}</style>";
+    private static final String WEBVIEW_CSS =
+                    "<style>img {dislay: inline; height: auto; max-width: 100%;}" +
+                    "p.title {font-size:28px; margin:0px; margin-bottom: 10px;}" +
+                    "p.footer {color:#808080; font-size:14px; margin:0px;</style>";
 
-    private String feedName;
     private FeedItem article;
-
-    private TextView titleTxt;
-    private TextView footerTxt;
     private WebView articleWebView;
     private FloatingActionButton openBrowserBtn;
 
@@ -71,8 +69,6 @@ public class ViewArticleFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_view_article, container, false);
 
         // Find elements
-        this.titleTxt = view.findViewById(R.id.article_title_txt);
-        this.footerTxt = view.findViewById(R.id.article_footer_txt);
         this.articleWebView = view.findViewById(R.id.article_web_view);
         this.openBrowserBtn = view.findViewById(R.id.openBrowserBtn);
 
@@ -84,17 +80,20 @@ public class ViewArticleFragment extends Fragment {
             startActivity(browser);
         });
 
-        this.titleTxt.setText(this.article.getTitle());
-        this.footerTxt.setText(this.article.getParentTitle() + " / " + this.article.getFormattedDate());
-
         String articleContents = "No contents";
         if (this.article.getEncodedContent() != null)
             articleContents = this.article.getEncodedContent();
         else if (this.article.getDescription() != null)
             articleContents = this.article.getDescription();
 
-        this.articleWebView.loadData(WEBVIEW_CSS + articleContents,"text/html", null);
+        String header = getHeaderHtml(this.article.getTitle(), this.article.getParentTitle(), this.article.getFormattedDate());
+        this.articleWebView.loadData(WEBVIEW_CSS + header + articleContents,"text/html", null);
 
         return view;
+    }
+
+    private String getHeaderHtml(String title, String feedName, String date) {
+        return "<p class='title'>" + title + "</p>" +
+                "<p class='footer'>" + feedName + " / " + date + "</p><br>";
     }
 }
