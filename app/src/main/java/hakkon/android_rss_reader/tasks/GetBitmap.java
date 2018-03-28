@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import hakkon.android_rss_reader.filesystem.BitmapCache;
 import hakkon.android_rss_reader.network.DownloadBitmap;
+import hakkon.android_rss_reader.util.NetworkState;
 
 /**
  * Created by hakkon on 18.03.18.
@@ -28,7 +29,7 @@ public class GetBitmap extends BaseTask<Bitmap> {
         this.bitmap = BitmapCache.loadImage(callingActivity, this.url);
 
         // Not in cache, download and save
-        if (this.bitmap == null) {
+        if (this.bitmap == null && NetworkState.hasNetwork(callingActivity)) {
             DownloadBitmap bitmapDownloader = new DownloadBitmap(this.url);
             try {
                 Bitmap rawBitmap = bitmapDownloader.getBitmap();

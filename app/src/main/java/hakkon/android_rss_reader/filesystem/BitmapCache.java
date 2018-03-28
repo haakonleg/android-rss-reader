@@ -33,7 +33,7 @@ public class BitmapCache {
             cacheDir.mkdirs();
 
         // Write image to file and compress
-        try (FileOutputStream fos = new FileOutputStream(new File(cacheDir, url.replace("/", "\\")), true)) {
+        try (FileOutputStream fos = new FileOutputStream(new File(cacheDir, Integer.toHexString(url.hashCode())), true)) {
             // Resize bitmap if necessary and compress
             int width = bitmap.getWidth();
             int height = bitmap.getHeight();
@@ -59,7 +59,7 @@ public class BitmapCache {
     public static Bitmap loadImage(Context context, String url) {
         File cacheDir = new File(context.getFilesDir(), CACHE_DIR);
 
-        File bitmapFile = new File(cacheDir, url.replace("/", "\\"));
+        File bitmapFile = new File(cacheDir, Integer.toHexString(url.hashCode()));
 
         if (!bitmapFile.exists())
             return null;

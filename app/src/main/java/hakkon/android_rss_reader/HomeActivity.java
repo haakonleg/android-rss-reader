@@ -156,6 +156,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         public void onClickFeed(int position) {
             Feed feed = navAdapter.getFeed(position);
             getSupportFragmentManager().popBackStack();
+            getSupportActionBar().setTitle(feed.getTitle());
             ViewFeedFragment fragment = ViewFeedFragment.newInstanceFeed(feed.getOriginLink());
             displayContent(fragment, "ViewFeed");
 

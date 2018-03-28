@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -77,6 +78,45 @@ public abstract class Parser {
         Element image = html.selectFirst("img");
         if (image != null)
             item.setImage(image.attr("src"));
+    }
+
+    void readMedia(XmlPullParser parser, FeedItem item) throws XmlPullParserException, IOException {
+        String content = parser.getAttributeValue(null, "url");
+        String mime = parser.getAttributeValue(null, "type");
+
+        String format = null;
+        if (content != null) {
+            int lastDot = content.lastIndexOf(".") + 1;
+            if (lastDot != -1)
+                format = content.substring(lastDot, content.length()).toLowerCase();
+        }
+
+        if (mime != null) {
+            mime = mime.toLowerCase();
+            if (mime.startsWith("image"))
+                item.setImage(content);
+        } else if (format != null) {
+            switch (format) {
+                case "jpg":
+                    item.setImage(content);
+                    break;
+                case "jpeg":
+                    item.setImage(content);
+                    break;
+                case "gif":
+                    item.setImage(content);
+                    break;
+                case "png":
+                    item.setImage(content);
+                    break;
+            }
+        }
+
+        while(parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG)
+                continue;
+            skip(parser);
+        }
     }
 
     String readText(XmlPullParser parser) throws XmlPullParserException, IOException {

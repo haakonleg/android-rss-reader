@@ -30,10 +30,7 @@ public class DownloadBitmap {
 
         // Handle response code
         int response = conn.getResponseCode();
-        if (response == 301) {
-            this.url = this.url.replace("http://", "https://");
-            return getBitmap();
-        } else if (response == 302) {
+        if (response == 301 || response == 302) {
             this.url = conn.getHeaderField("Location");
             return getBitmap();
         } else if (conn.getResponseCode() == 200) {

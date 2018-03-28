@@ -31,7 +31,7 @@ public class ThreadPool {
 
     static {
         NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors();
-        KEEP_ALIVE_TIME = 1;
+        KEEP_ALIVE_TIME = 5;
     }
 
     public static ThreadPool getInstance() {

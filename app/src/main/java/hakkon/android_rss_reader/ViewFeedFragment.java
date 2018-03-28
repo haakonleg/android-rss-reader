@@ -84,9 +84,6 @@ public class ViewFeedFragment extends Fragment {
             GetItems feedItems = new GetItems(getActivity(), this.feedUrl, (error, items) -> {
                 this.adapter = new FeedListAdapter(getActivity(), items, new FeedListListener());
                 this.feedList.setAdapter(this.adapter);
-
-                // Set actionbar title
-                ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.adapter.getItem(0).getParentTitle());
             });
             ThreadPool.getInstance().execute(feedItems);
         }

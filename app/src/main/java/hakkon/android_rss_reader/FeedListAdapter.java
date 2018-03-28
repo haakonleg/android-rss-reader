@@ -55,6 +55,8 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
                 if (bitmap != null) {
                     holder.feedImg.setVisibility(View.VISIBLE);
                     holder.feedImg.setImageBitmap(bitmap);
+                } else {
+                    holder.feedImg.setVisibility(View.INVISIBLE);
                 }
             });
             ThreadPool.getInstance().execute(bitmapTask);

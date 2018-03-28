@@ -17,7 +17,8 @@ public class AtomParser extends Parser {
         // RFC 3339
         dateFormats = new SimpleDateFormat[] {
                 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH),
-                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)};
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH)};
     }
 
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
@@ -70,15 +71,19 @@ public class AtomParser extends Parser {
             } else if (tag.equalsIgnoreCase("content")) {
                 item.setEncodedContent(readText(parser));
             } else if (tag.equalsIgnoreCase("link")) {
-                item.setLink(parser.getAttributeValue(null, "href"));
+                if (item.getLink() == null)
+                    item.setLink(parser.getAttributeValue(null, "href"));
                 parser.nextTag();
             } else if (tag.equalsIgnoreCase("summary")) {
                 item.setDescription(readText(parser));
+            } else if (tag.equalsIgnoreCase("media:content")) {
+                readMedia(parser, item);
             } else {
                 skip(parser);
             }
         }
 
+        // Image was not found in XML, so try to get image from the description or content
         if (item.getImage() == null) {
             findImage(item);
         }

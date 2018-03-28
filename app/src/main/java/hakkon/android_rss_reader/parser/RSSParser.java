@@ -80,18 +80,35 @@ public class RSSParser extends Parser {
                 item.setDate(readDate(parser));
             } else if (tag.equalsIgnoreCase("content:encoded")) {
                 item.setEncodedContent(readText(parser));
+            } else if (tag.equalsIgnoreCase("enclosure")) {
+                readEnclosure(parser, item);
+            } else if (tag.equalsIgnoreCase("media:content")) {
+                readMedia(parser, item);
             } else if (tag.equalsIgnoreCase("media:thumbnail")) {
-                item.setImage(parser.getAttributeValue(null, "url"));
+                if (item.getImage() == null)
+                    item.setImage(parser.getAttributeValue(null, "url"));
                 parser.nextTag();
             } else {
                 skip(parser);
             }
         }
 
+        // Image was not found in XML, so try to get image from the description or content
         if (item.getImage() == null) {
             findImage(item);
         }
         return item;
+    }
+
+    private void readEnclosure(XmlPullParser parser, FeedItem item) throws XmlPullParserException, IOException {
+        String type = parser.getAttributeValue(null, "type").toLowerCase();
+        String content = parser.getAttributeValue(null, "url");
+
+        if (type.startsWith("image")) {
+            item.setImage(content);
+        }
+
+        parser.nextTag();
     }
 
     private String readImage(XmlPullParser parser) throws XmlPullParserException, IOException {

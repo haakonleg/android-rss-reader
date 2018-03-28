@@ -115,6 +115,8 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     holder.feedImg.setImageDrawable(this.activity.getDrawable(R.drawable.ic_rss_feed_24dp));
             });
             ThreadPool.getInstance().execute(bitmapTask);
+        } else {
+            holder.feedImg.setImageDrawable(this.activity.getDrawable(R.drawable.ic_rss_feed_24dp));
         }
 
         holder.titleTxt.setText(item.getTitle());
