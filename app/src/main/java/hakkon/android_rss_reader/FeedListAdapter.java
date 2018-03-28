@@ -52,10 +52,14 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
         String imgUrl = item.getImage();
         if (imgUrl != null) {
             GetBitmap bitmapTask = new GetBitmap(this.activity, imgUrl, (error, bitmap) -> {
-                if (bitmap != null)
+                if (bitmap != null) {
+                    holder.feedImg.setVisibility(View.VISIBLE);
                     holder.feedImg.setImageBitmap(bitmap);
+                }
             });
             ThreadPool.getInstance().execute(bitmapTask);
+        } else {
+            holder.feedImg.setVisibility(View.INVISIBLE);
         }
 
         holder.titleTxt.setText(item.getTitle());

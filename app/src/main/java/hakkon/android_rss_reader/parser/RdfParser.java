@@ -7,10 +7,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 
 import hakkon.android_rss_reader.database.FeedItem;
@@ -21,11 +19,12 @@ import hakkon.android_rss_reader.database.Feed;
  */
 
 public class RdfParser extends Parser {
-    // ISO 8601
-    private final SimpleDateFormat timeRdf =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
 
-    public RdfParser () throws XmlPullParserException {}
+    public RdfParser () throws XmlPullParserException {
+        // ISO 8601
+        dateFormats = new SimpleDateFormat[] {
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH)};
+    }
 
     @Override
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
@@ -79,19 +78,6 @@ public class RdfParser extends Parser {
                 skip(parser);
             }
         }
-    }
-
-    private long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String unformatted = readText(parser);
-
-        try {
-            Date date = timeRdf.parse(unformatted);
-            return date.getTime();
-        } catch (ParseException e) {
-            Log.e("RdfParser", Log.getStackTraceString(e));
-        }
-
-        return -1;
     }
 
     private FeedItem readItem(XmlPullParser parser) throws XmlPullParserException, IOException {

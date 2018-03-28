@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Supreme Feeder</string>
+    <string name="app_name">Supreme Reader</string>
 
     <string name="nav_recent_articles">Recent Articles</string>
     <string name="nav_my_subscriptions">My Subscriptions</string>

@@ -12,6 +12,9 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import hakkon.android_rss_reader.database.Feed;
@@ -27,6 +30,9 @@ public abstract class Parser {
     public static final int TYPE_ATOM = 1;
     public static final int TYPE_RDF = 2;
     public static final int TYPE_UNKNOWN = -1;
+
+    // Date formats
+    protected SimpleDateFormat[] dateFormats;
 
     public static int detectType(String xml) throws XmlPullParserException, IOException {
         XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
@@ -97,6 +103,23 @@ public abstract class Parser {
                     break;
             }
         }
+    }
+
+    long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
+        String unformatted = readText(parser);
+
+        for (int i = 0; i < dateFormats.length; i++) {
+            SimpleDateFormat format = dateFormats[i];
+            try {
+                Date date = format.parse(unformatted);
+                return date.getTime();
+            } catch (ParseException e) {
+                if (i == dateFormats.length - 1)
+                    Log.e("AtomParser", Log.getStackTraceString(e));
+            }
+        }
+
+        return -1;
     }
 
     public class ParserResult {

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,6 +34,12 @@ public class BitmapCache {
 
         // Write image to file and compress
         try (FileOutputStream fos = new FileOutputStream(new File(cacheDir, url.replace("/", "\\")), true)) {
+            // Resize bitmap if necessary and compress
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            if (width > 400 || height > 400)
+                bitmap = Bitmap.createScaledBitmap(bitmap, (int)(width * 0.3), (int)(height * 0.3), true);
+
             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
         } catch (IOException e) {
             Log.e("BitmapCache", Log.getStackTraceString(e));

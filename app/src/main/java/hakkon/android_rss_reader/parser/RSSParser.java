@@ -1,15 +1,11 @@
 package hakkon.android_rss_reader.parser;
 
-import android.util.Log;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 
 import hakkon.android_rss_reader.database.FeedItem;
@@ -20,11 +16,12 @@ import hakkon.android_rss_reader.database.Feed;
  */
 
 public class RSSParser extends Parser {
-    // RFC 822
-    private final SimpleDateFormat timeRSS =
-            new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
-    public RSSParser() throws XmlPullParserException { }
+    public RSSParser() throws XmlPullParserException {
+        // RFC 822
+        dateFormats = new SimpleDateFormat[] {
+                new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)};
+    }
 
     @Override
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
@@ -83,6 +80,9 @@ public class RSSParser extends Parser {
                 item.setDate(readDate(parser));
             } else if (tag.equalsIgnoreCase("content:encoded")) {
                 item.setEncodedContent(readText(parser));
+            } else if (tag.equalsIgnoreCase("media:thumbnail")) {
+                item.setImage(parser.getAttributeValue(null, "url"));
+                parser.nextTag();
             } else {
                 skip(parser);
             }
@@ -92,19 +92,6 @@ public class RSSParser extends Parser {
             findImage(item);
         }
         return item;
-    }
-
-    private long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String unformatted = readText(parser);
-
-        try {
-            Date date = timeRSS.parse(unformatted);
-            return date.getTime();
-        } catch (ParseException e) {
-            Log.e("RSSParser", Log.getStackTraceString(e));
-        }
-
-        return -1;
     }
 
     private String readImage(XmlPullParser parser) throws XmlPullParserException, IOException {

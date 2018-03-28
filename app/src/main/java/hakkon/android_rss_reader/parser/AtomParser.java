@@ -1,26 +1,24 @@
 package hakkon.android_rss_reader.parser;
 
-import android.util.Log;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 
 import hakkon.android_rss_reader.database.FeedItem;
 import hakkon.android_rss_reader.database.Feed;
 
 public class AtomParser extends Parser {
-    // RFC 3399
-    private final SimpleDateFormat timeAtom =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH);
 
-    public AtomParser() throws XmlPullParserException { }
+    public AtomParser() throws XmlPullParserException {
+        // RFC 3339
+        dateFormats = new SimpleDateFormat[] {
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)};
+    }
 
     public ParserResult parse(String xml) throws XmlPullParserException, IOException {
         ParserResult result = new ParserResult();
@@ -99,18 +97,5 @@ public class AtomParser extends Parser {
             }
         }
         return author.toString();
-    }
-
-    private long readDate(XmlPullParser parser) throws XmlPullParserException, IOException {
-        String unformatted = readText(parser);
-
-        try {
-            Date date = timeAtom.parse(unformatted);
-            return date.getTime();
-        } catch (ParseException e) {
-            Log.e("RSSParser", Log.getStackTraceString(e));
-        }
-
-        return -1;
     }
 }
