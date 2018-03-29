@@ -166,7 +166,7 @@ public class ViewFeedFragment extends Fragment {
                             if (updatedItems.size() > 0)
                                 adapter.addItems(updatedItems);
 
-                            Messages.showToast(getActivity(), "New items: " + Integer.toString(updatedItems.size()));
+                            Messages.showToast(getActivity(), "Updated articles: " + Integer.toString(updatedItems.size()));
                             refreshLayout.setRefreshing(false);
                         }
                     });
@@ -179,7 +179,7 @@ public class ViewFeedFragment extends Fragment {
                     if (result.items.size() > 0)
                         adapter.addItems(result.items);
 
-                    Messages.showToast(getActivity(), "New items: " + Integer.toString(result.items.size()));
+                    Messages.showToast(getActivity(), "Updated articles: " + Integer.toString(result.items.size()));
                     refreshLayout.setRefreshing(false);
                 });
                 ThreadPool.getInstance().execute(updateTask);

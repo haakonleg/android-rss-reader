@@ -80,32 +80,40 @@ public class FeedParser extends BaseTask<Parser.ParserResult> {
         }
 
         result.feed.setOriginLink(this.url);
-        saveToDb(result.feed);
-        List<FeedItem> newItems = checkNewItems(result.items, result.feed.getTitle());
+        // Save feed to database if it doesn't exist
+        if (db.feedDao().getFeed(result.feed.getOriginLink()) == null)
+            db.feedDao().insertFeed(result.feed);
 
-        callbackToUI(PARSER_OK, new Parser.ParserResult(result.feed, newItems));
-    }
+        // Check new articles
+        List<FeedItem> affectedItems = checkNewItems(result.items, result.feed.getTitle());
 
-    private void saveToDb(Feed feed) {
-        // Check if it exists already, if not insert
-        if (db.feedDao().getFeed(feed.getOriginLink()) == null)
-            db.feedDao().insertFeed(feed);
+        callbackToUI(PARSER_OK, new Parser.ParserResult(result.feed, affectedItems));
     }
 
     private List<FeedItem> checkNewItems(List<FeedItem> items, String feedTitle) {
         // Determine newly updated articles to add
         ArrayList<FeedItem> toInsert = new ArrayList<>();
+        ArrayList<FeedItem> toUpdate = new ArrayList<>();
         try {
             long lastDate = db.feedItemDAO().getNewestItem(this.url);
             for(FeedItem item : items) {
                 if (item.getDate() > lastDate) {
                     item.setParentFeed(this.url);
                     item.setParentTitle(feedTitle);
-                    toInsert.add(item);
+
+                    // Check if the article is just updated and not a new one
+                    FeedItem old = db.feedItemDAO().getItem(this.url, item.getLink());
+                    if (old != null) {
+                        item.setId(old.getId());
+                        toUpdate.add(item);
+                    } else {
+                        toInsert.add(item);
+                    }
                 }
             }
-            // Insert the items
+            // Insert and update
             db.feedItemDAO().insertItems(toInsert);
+            db.feedItemDAO().updateItems(toUpdate);
 
             // Determine if we need to delete old articles (max feeds reached)
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
@@ -118,6 +126,10 @@ public class FeedParser extends BaseTask<Parser.ParserResult> {
         } catch (SQLiteException e) {
             Log.e("FeedParser", Log.getStackTraceString(e));
         }
-        return toInsert;
+
+        ArrayList<FeedItem> affectedItems = new ArrayList<>();
+        affectedItems.addAll(toInsert);
+        affectedItems.addAll(toUpdate);
+        return affectedItems;
     }
 }

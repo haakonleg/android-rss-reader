@@ -4,6 +4,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import java.util.List;
 
@@ -13,6 +14,9 @@ import java.util.List;
 
 @Dao
 public interface FeedItemDAO {
+    @Query("SELECT * FROM FeedItem WHERE item_parent = :parent AND item_link = :link")
+    FeedItem getItem(String parent, String link);
+
     @Query("SELECT * FROM FeedItem WHERE item_parent = :parent ORDER BY item_date DESC")
     List<FeedItem> getItems(String parent);
 
@@ -35,6 +39,10 @@ public interface FeedItemDAO {
     @Insert
     void insertItems(List<FeedItem> items);
 
+    @Update
+    void updateItems(List<FeedItem> items);
+
     @Delete
     void deleteItem(FeedItem item);
+
 }
