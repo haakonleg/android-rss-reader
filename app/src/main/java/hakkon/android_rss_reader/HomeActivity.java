@@ -34,10 +34,17 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Set default prefs and theme
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
+        String theme = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("selected_theme", getString(R.string.pref_theme_default));
+        if (theme.equals("dark"))
+            setTheme(R.style.AppThemeDark);
+        else
+            setTheme(R.style.AppTheme);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
 
         // Set up actionbar
         Toolbar toolbar = findViewById(R.id.toolbar);

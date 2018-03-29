@@ -21,5 +21,5 @@
         android:layout_marginTop="3dp"
         android:layout_toEndOf="@id/icon_img"
         android:text="FEED_NAME"
-        android:textSize="16sp" />
+        android:textAppearance="@android:style/TextAppearance.Material" />
 </RelativeLayout>

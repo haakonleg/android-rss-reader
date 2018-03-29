@@ -1,6 +1,7 @@
 package hakkon.android_rss_reader;
 
 import android.os.Bundle;
+import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 
@@ -24,6 +25,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 Messages.showToast(getActivity(), "Cache cleared");
             });
             ThreadPool.getInstance().execute(task);
+            return true;
+        });
+
+        ListPreference theme = (ListPreference) findPreference("selected_theme");
+        theme.setOnPreferenceChangeListener((preference, newValue) -> {
+            getActivity().getSupportFragmentManager().popBackStack();
+            getActivity().recreate();
             return true;
         });
     }

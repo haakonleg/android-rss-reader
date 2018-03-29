@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="navIconColor" format="reference|color"/>
+    <attr name="toolbarTheme" format="reference"/>
+    <attr name="cardViewTheme" format="reference"/>
+</resources>
