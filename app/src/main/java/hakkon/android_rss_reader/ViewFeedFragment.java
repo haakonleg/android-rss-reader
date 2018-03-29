@@ -35,6 +35,7 @@ public class ViewFeedFragment extends Fragment {
     private SwipeRefreshLayout refreshLayout;
     private RecyclerView feedList;
     private ProgressBar progressBar;
+    private String feedTitle;
     private String feedUrl;
     private Boolean isHome;
     private FeedListAdapter adapter;
@@ -43,10 +44,11 @@ public class ViewFeedFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static ViewFeedFragment newInstanceFeed(String feedUrl) {
+    public static ViewFeedFragment newInstanceFeed(String feedTitle, String feedUrl) {
         ViewFeedFragment fragment = new ViewFeedFragment();
         Bundle bundle = new Bundle();
         bundle.putBoolean("is_home", false);
+        bundle.putString("feed_title", feedTitle);
         bundle.putString("feed_url", feedUrl);
         fragment.setArguments(bundle);
         return fragment;
@@ -71,6 +73,7 @@ public class ViewFeedFragment extends Fragment {
             bundle = getArguments();
 
         if (bundle != null) {
+            this.feedTitle = bundle.getString("feed_title");
             this.feedUrl = bundle.getString("feed_url");
             this.isHome = bundle.getBoolean("is_home");
             this.adapter = new FeedListAdapter(getActivity(), new FeedListListener());
@@ -80,6 +83,7 @@ public class ViewFeedFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putString("feed_title", this.feedTitle);
         outState.putString("feed_url", this.feedUrl);
         outState.putBoolean("is_home", this.isHome);
     }
@@ -111,23 +115,24 @@ public class ViewFeedFragment extends Fragment {
         // Get articles from cache
         BaseTask fetchTask;
         BaseTask.TaskCallback<List<FeedItem>> callback = (error, items) -> {
-            this.adapter.addItems(items);
+            this.adapter.setItems(items);
             this.progressBar.setVisibility(View.GONE);
         };
 
-        if (this.isHome)
+        if (this.isHome) {
+            ((HomeActivity)getActivity()).getSupportActionBar().setTitle(getString(R.string.app_name));
             fetchTask = new GetRecentItems(getActivity(), callback);
-        else
+        } else {
+            ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.feedTitle);
             fetchTask = new GetItems(getActivity(), this.feedUrl, callback);
-
+        }
         ThreadPool.getInstance().execute(fetchTask);
     }
 
     // Listener for when an article is clicked
     private class FeedListListener implements FeedListAdapter.OnItemClicked {
         @Override
-        public void onClick(int position) {
-            FeedItem article = adapter.getItem(position);
+        public void onClick(FeedItem article) {
             ViewArticleFragment fragment =
                     ViewArticleFragment.newInstance(article);
             ((HomeActivity)getActivity()).displayContent(fragment, "ViewArticle");

@@ -23,7 +23,7 @@ public class ViewArticleFragment extends Fragment {
     // CSS to scale images to fit screen
     private static final String WEBVIEW_CSS =
                     "<style>img {dislay: inline; height: auto; max-width: 100%;}" +
-                    "p.title {font-size:28px; margin:0px; margin-bottom: 10px;}" +
+                    "p.title {font-size:28px; padding: 0px; margin:0px; margin-bottom: 10px;}" +
                     "p.footer {color:#808080; font-size:14px; margin:0px;</style>";
 
     private FeedItem article;
@@ -86,14 +86,26 @@ public class ViewArticleFragment extends Fragment {
         else if (this.article.getDescription() != null)
             articleContents = this.article.getDescription();
 
-        String header = getHeaderHtml(this.article.getTitle(), this.article.getParentTitle(), this.article.getFormattedDate());
+        String header = getHeaderHtml(
+                this.article.getTitle(),
+                this.article.getParentTitle(),
+                this.article.getAuthor(),
+                this.article.getFormattedDate());
+
         this.articleWebView.loadData(WEBVIEW_CSS + header + articleContents,"text/html", null);
 
         return view;
     }
 
-    private String getHeaderHtml(String title, String feedName, String date) {
-        return "<p class='title'>" + title + "</p>" +
-                "<p class='footer'>" + feedName + " / " + date + "</p><br>";
+    private String getHeaderHtml(String title, String feedName, String author, String date) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<p class='title'>").append(title).append("</p>");
+
+        if (author != null)
+            builder.append("<p class='footer'>").append(author).append("</p>");
+
+        builder.append("<p class='footer'>").append(feedName).append(" / ").append(date).append("</p><br>");
+
+        return builder.toString();
     }
 }

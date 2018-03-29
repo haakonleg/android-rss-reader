@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -80,51 +83,25 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         int viewType = holder.getItemViewType();
 
         switch (viewType) {
-            case TYPE_HEADER:
-                bindHeader((ViewHolderHeader) holder);
-                break;
             case TYPE_FEED:
-                bindFeed((ViewHolderFeed) holder, position - 1);
-                break;
-            case TYPE_FOOTER:
-                bindFooter((ViewHolderFooter) holder);
+                bindFeed((ViewHolderFeed) holder, this.items.get(position - 1));
                 break;
         }
     }
 
-    private void bindHeader(ViewHolderHeader holder) {
-        holder.homeBtn.setOnClickListener((v) -> {
-            this.listener.onClickButton(holder.homeBtn.getId());
-        });
-    }
-
-    private void bindFooter(ViewHolderFooter holder) {
-        holder.manageBtn.setOnClickListener((v) -> {
-            this.listener.onClickButton(holder.manageBtn.getId());
-        });
-        holder.settingsBtn.setOnClickListener((v) -> {
-            this.listener.onClickButton(holder.settingsBtn.getId());
-        });
-    }
-
-    private void bindFeed(ViewHolderFeed holder, int position) {
-        Feed item = this.items.get(position);
-
+    private void bindFeed(ViewHolderFeed holder, Feed item) {
         String imageUrl = item.getImage();
+        holder.feedImg.setImageDrawable(this.activity.getDrawable(R.drawable.ic_rss_feed_24dp));
+
         if (imageUrl != null) {
             GetBitmap bitmapTask = new GetBitmap(this.activity, imageUrl, (error, bitmap) -> {
                 if (bitmap != null)
                     holder.feedImg.setImageBitmap(bitmap);
-                else
-                    holder.feedImg.setImageDrawable(this.activity.getDrawable(R.drawable.ic_rss_feed_24dp));
             });
             ThreadPool.getInstance().execute(bitmapTask);
-        } else {
-            holder.feedImg.setImageDrawable(this.activity.getDrawable(R.drawable.ic_rss_feed_24dp));
         }
 
         holder.titleTxt.setText(item.getTitle());
-        holder.view.setOnClickListener((v) -> this.listener.onClickFeed(position));
     }
 
     @Override
@@ -137,6 +114,7 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             return TYPE_FEED;
     }
 
+    // Items + header + footer
     @Override
     public int getItemCount() {
         return items.size() + 2;
@@ -150,6 +128,8 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             super(view);
             this.view = view;
             homeBtn = view.findViewById(R.id.nav_home_btn);
+
+            homeBtn.setOnClickListener(v -> listener.onClickButton(homeBtn.getId()));
         }
     }
 
@@ -163,10 +143,13 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             this.view = view;
             manageBtn = view.findViewById(R.id.nav_manage_btn);
             settingsBtn = view.findViewById(R.id.nav_settings_btn);
+
+            manageBtn.setOnClickListener(v -> listener.onClickButton(manageBtn.getId()));
+            settingsBtn.setOnClickListener(v -> listener.onClickButton(settingsBtn.getId()));
         }
     }
 
-    class ViewHolderFeed extends RecyclerView.ViewHolder {
+    class ViewHolderFeed extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener, MenuItem.OnMenuItemClickListener {
         View view;
         ImageView feedImg;
         TextView titleTxt;
@@ -176,11 +159,31 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             this.view = view;
             feedImg = view.findViewById(R.id.icon_img);
             titleTxt = view.findViewById(R.id.title_txt);
+
+            this.view.setOnCreateContextMenuListener(this);
+            view.setOnClickListener(v -> listener.onClickFeed(items.get(getAdapterPosition() - 1)));
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            MenuInflater inflater = activity.getMenuInflater();
+            inflater.inflate(R.menu.nav_feed_context_menu, menu);
+
+            menu.findItem(R.id.feed_copy_url).setOnMenuItemClickListener(this);
+            menu.findItem(R.id.feed_rename).setOnMenuItemClickListener(this);
+            menu.findItem(R.id.feed_unsub).setOnMenuItemClickListener(this);
+        }
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            listener.onContextItemSelected(items.get(getAdapterPosition() - 1), item);
+            return true;
         }
     }
 
     public interface OnItemClicked {
         void onClickButton(int button);
-        void onClickFeed(int position);
+        void onClickFeed(Feed feed);
+        void onContextItemSelected(Feed feed, MenuItem item);
     }
 }

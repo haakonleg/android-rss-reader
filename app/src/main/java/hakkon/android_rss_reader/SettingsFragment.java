@@ -16,6 +16,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
+        ((HomeActivity)getActivity()).getSupportActionBar().setTitle("Settings");
+
         Preference clearCache = findPreference("clear_cache");
         clearCache.setOnPreferenceClickListener((preference) -> {
             ClearCache task = new ClearCache(getActivity(), (error, res) -> {

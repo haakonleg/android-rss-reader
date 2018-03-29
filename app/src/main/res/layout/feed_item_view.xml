@@ -58,6 +58,7 @@
                 android:layout_alignBottom="@id/feed_item_img"
                 android:layout_toEndOf="@id/feed_item_img"
                 android:layout_toStartOf="@id/feed_item_updated"
+                android:layout_marginEnd="10dp"
                 android:maxLines="1"
                 android:text="FEED_PARENT" />
 

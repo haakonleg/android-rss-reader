@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/feed_copy_url"
+        android:title="@string/nav_context_copy"/>
+    <item
+        android:id="@+id/feed_rename"
+        android:title="@string/nav_context_rename"/>
+    <item
+        android:id="@+id/feed_unsub"
+        android:title="@string/nav_context_unsubscribe"/>
+</menu>

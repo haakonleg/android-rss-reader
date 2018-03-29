@@ -10,6 +10,15 @@
     <string name="popup_placeholder">URL</string>
     <string name="popup_add">Add</string>
 
+    <string name="dialog_error">Error</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_unsubscribe">Are you sure you want to unsubscribe from this feed?</string>
+
+    <string name="nav_context_copy">Copy feed URL</string>
+    <string name="nav_context_rename">Rename</string>
+    <string name="nav_context_unsubscribe">Unsubscribe</string>
+
     <string name="pref_feeds">Feeds</string>
     <string name="pref_max_articles_title">Number of Articles</string>
     <string name="pref_max_articles_summary">Select the max number of articles to display per feed</string>

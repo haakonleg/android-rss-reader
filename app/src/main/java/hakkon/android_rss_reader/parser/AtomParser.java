@@ -99,6 +99,8 @@ public class AtomParser extends Parser {
                 skip(parser);
             }
         }
+        author.deleteCharAt(author.length() - 2);
+
         return author.toString();
     }
 }

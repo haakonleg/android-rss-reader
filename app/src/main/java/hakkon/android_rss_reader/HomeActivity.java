@@ -1,11 +1,14 @@
 package hakkon.android_rss_reader;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -13,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 
 import hakkon.android_rss_reader.database.Feed;
@@ -125,27 +129,22 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         FragmentManager fm = getSupportFragmentManager();
         int cnt = fm.getBackStackEntryCount();
 
-        if (cnt > 0) {
-            String name = fm.getBackStackEntryAt(cnt-1).getName();
-            if (name.equals("ViewArticle") || name.equals("Settings"))
-                fm.popBackStack();
-            else
-                this.drawerLayout.openDrawer(GravityCompat.START);
-        } else {
+        if (cnt > 0 && (fm.getBackStackEntryAt(cnt-1).getName().equals("ViewArticle") ||
+                fm.getBackStackEntryAt(cnt-1).getName().equals("Settings")))
+            fm.popBackStack();
+        else
             this.drawerLayout.openDrawer(GravityCompat.START);
-        }
+
         return true;
     }
 
     private class NavListener implements NavRecyclerAdapter.OnItemClicked {
         @Override
         public void onClickButton(int button) {
-            if (button == R.id.nav_home_btn) {
+            if (button == R.id.nav_home_btn)
                 getSupportFragmentManager().popBackStack();
-            } else if (button == R.id.nav_settings_btn) {
-                getSupportActionBar().setTitle("Settings");
+            else if (button == R.id.nav_settings_btn)
                 displayContent(new SettingsFragment(), "Settings");
-            }
 
             new Handler().postDelayed(() -> {
                 drawerLayout.closeDrawers();
@@ -153,16 +152,39 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         }
 
         @Override
-        public void onClickFeed(int position) {
-            Feed feed = navAdapter.getFeed(position);
+        public void onClickFeed(Feed feed) {
             getSupportFragmentManager().popBackStack();
-            getSupportActionBar().setTitle(feed.getTitle());
-            ViewFeedFragment fragment = ViewFeedFragment.newInstanceFeed(feed.getOriginLink());
+            ViewFeedFragment fragment = ViewFeedFragment.newInstanceFeed(feed.getTitle(), feed.getOriginLink());
             displayContent(fragment, "ViewFeed");
 
             new Handler().postDelayed(() -> {
                 drawerLayout.closeDrawers();
             }, 100);
+        }
+
+        @Override
+        public void onContextItemSelected(Feed feed, MenuItem item) {
+            if (item.getItemId() == R.id.feed_copy_url) {
+
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newRawUri("FeedURL", Uri.parse(feed.getOriginLink()));
+                clipboard.setPrimaryClip(clip);
+                Messages.showToast(HomeActivity.this, "Copied to clipboard");
+
+            } else if (item.getItemId() == R.id.feed_rename) {
+
+            } else if (item.getItemId() == R.id.feed_unsub) {
+
+                Messages.showAreYouSure(HomeActivity.this, feed.getTitle(),
+                        HomeActivity.this.getString(R.string.dialog_unsubscribe), (dialog, which) -> {
+                    if (which == DialogInterface.BUTTON_POSITIVE) {
+                        Log.e("SELECTED YES", "Sel yes");
+                    } else {
+                        Log.e("SELECTED NO", "Sel no");
+                    }
+                });
+
+            }
         }
     }
 
@@ -171,20 +193,14 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         // Get current fragment name
         FragmentManager fm = getSupportFragmentManager();
         int cnt = fm.getBackStackEntryCount();
-        if (cnt == 0) {
-            getSupportActionBar().setTitle(getString(R.string.app_name));
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
-            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-            return;
-        }
 
-        String name = fm.getBackStackEntryAt(cnt-1).getName();
-        if (name == null || name.equals("ViewFeed")) {
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
-            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        } else if (name.equals("ViewArticle") || name.equals("Settings")) {
+        if (cnt > 0 && (fm.getBackStackEntryAt(cnt-1).getName().equals("ViewArticle") ||
+                fm.getBackStackEntryAt(cnt-1).getName().equals("Settings"))) {
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_24dp);
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        } else {
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         }
     }
 }

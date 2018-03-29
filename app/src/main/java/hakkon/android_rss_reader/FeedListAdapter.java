@@ -27,17 +27,18 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
     public FeedListAdapter(Activity activity, OnItemClicked listener) {
         super();
         this.activity = activity;
-        this.items = new LinkedList<>();
         this.listener = listener;
+    }
+
+    public void setItems(List<FeedItem> items) {
+        this.items = new LinkedList<>();
+        this.items.addAll(items);
+        this.notifyDataSetChanged();
     }
 
     public void addItems(List<FeedItem> items) {
         this.items.addAll(0, items);
         this.notifyDataSetChanged();
-    }
-
-    public FeedItem getItem(int position) {
-        return items.get(position);
     }
 
     @NonNull
@@ -55,18 +56,16 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
 
         // Set image
         String imgUrl = item.getImage();
+        holder.feedImg.setVisibility(View.INVISIBLE);
+
         if (imgUrl != null) {
             GetBitmap bitmapTask = new GetBitmap(this.activity, imgUrl, (error, bitmap) -> {
                 if (bitmap != null) {
                     holder.feedImg.setVisibility(View.VISIBLE);
                     holder.feedImg.setImageBitmap(bitmap);
-                } else {
-                    holder.feedImg.setVisibility(View.INVISIBLE);
                 }
             });
             ThreadPool.getInstance().execute(bitmapTask);
-        } else {
-            holder.feedImg.setVisibility(View.INVISIBLE);
         }
 
         holder.titleTxt.setText(item.getTitle());
@@ -88,11 +87,12 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
         holder.descTxt.setText(Jsoup.clean(desc, Whitelist.none()));
         holder.parentTxt.setText(item.getParentTitle());
         holder.updatedTxt.setText(item.getAge());
-        holder.card.setOnClickListener((v) -> this.listener.onClick(position));
     }
 
     @Override
     public int getItemCount() {
+        if (this.items == null)
+            return 0;
         return items.size();
     }
 
@@ -112,10 +112,12 @@ public class FeedListAdapter extends RecyclerView.Adapter<FeedListAdapter.ViewHo
             descTxt = view.findViewById(R.id.feed_item_desc);
             parentTxt = view.findViewById(R.id.feed_item_parent);
             updatedTxt = view.findViewById(R.id.feed_item_updated);
+
+            this.card.setOnClickListener(v -> listener.onClick(items.get(getAdapterPosition())));
         }
     }
 
     public interface OnItemClicked {
-        void onClick(int position);
+        void onClick(FeedItem item);
     }
 }
