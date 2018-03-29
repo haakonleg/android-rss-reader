@@ -16,7 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 
 import hakkon.android_rss_reader.database.Feed;
@@ -126,20 +125,6 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
                 .addToBackStack(tag).commit();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        FragmentManager fm = getSupportFragmentManager();
-        int cnt = fm.getBackStackEntryCount();
-
-        if (cnt > 0 && (fm.getBackStackEntryAt(cnt-1).getName().equals("ViewArticle") ||
-                fm.getBackStackEntryAt(cnt-1).getName().equals("Settings")))
-            fm.popBackStack();
-        else
-            this.drawerLayout.openDrawer(GravityCompat.START);
-
-        return true;
-    }
-
     private class NavListener implements NavRecyclerAdapter.OnItemClicked {
         @Override
         public void onClickButton(int button) {
@@ -205,6 +190,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         FragmentManager fm = getSupportFragmentManager();
         int cnt = fm.getBackStackEntryCount();
 
+        // Show back button
         if (cnt > 0 && (fm.getBackStackEntryAt(cnt-1).getName().equals("ViewArticle") ||
                 fm.getBackStackEntryAt(cnt-1).getName().equals("Settings"))) {
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_24dp);
@@ -213,5 +199,22 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            FragmentManager fm = getSupportFragmentManager();
+            int cnt = fm.getBackStackEntryCount();
+
+            // Back button
+            if (cnt > 0 && (fm.getBackStackEntryAt(cnt - 1).getName().equals("ViewArticle") ||
+                    fm.getBackStackEntryAt(cnt - 1).getName().equals("Settings")))
+                fm.popBackStack();
+            // Drawer button
+            else
+                this.drawerLayout.openDrawer(GravityCompat.START);
+        }
+        return false;
     }
 }

@@ -2,8 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/actionbar_drawer"
-        android:icon="@drawable/ic_menu_24dp"
-        android:title="Open drawer"
-        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_bar_refresh"
+        android:icon="@drawable/ic_refresh_24dp"
+        android:title="Refresh"
+        app:showAsAction="always"
+        app:actionViewClass="android.widget.ImageView"/>
+
 </menu>

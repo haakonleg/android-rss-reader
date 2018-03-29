@@ -20,6 +20,8 @@
             android:background="?attr/colorPrimary"
             app:title="@string/app_name"
             app:titleTextColor="@color/white"
+            android:paddingStart="0dp"
+            android:paddingEnd="10dp"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"/>
 
         <FrameLayout

@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +45,7 @@ public class BitmapCache {
         }
 
         // Check if cache is full
-        if (sizeOfDir(cacheDir) >=  CACHE_SIZE)
+        while(sizeOfDir(cacheDir) > CACHE_SIZE)
             deleteOld(cacheDir);
     }
 
