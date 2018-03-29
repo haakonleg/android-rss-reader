@@ -12,8 +12,10 @@
 
     <string name="dialog_error">Error</string>
     <string name="dialog_yes">Yes</string>
+    <string name="dialog_ok">Ok</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_unsubscribe">Are you sure you want to unsubscribe from this feed?</string>
+    <string name="dialog_rename">Custom title for this feed:</string>
 
     <string name="nav_context_copy">Copy feed URL</string>
     <string name="nav_context_rename">Rename</string>

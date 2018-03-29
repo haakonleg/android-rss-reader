@@ -20,8 +20,10 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import hakkon.android_rss_reader.database.Feed;
+import hakkon.android_rss_reader.tasks.DeleteFeed;
 import hakkon.android_rss_reader.tasks.FeedParser;
 import hakkon.android_rss_reader.tasks.GetFeeds;
+import hakkon.android_rss_reader.tasks.UpdateFeed;
 import hakkon.android_rss_reader.util.Messages;
 import hakkon.android_rss_reader.util.NetworkState;
 
@@ -173,14 +175,23 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
 
             } else if (item.getItemId() == R.id.feed_rename) {
 
+                Messages.showInputDialog(HomeActivity.this, feed.getTitle(), getString(R.string.dialog_rename), (text) -> {
+                    feed.setTitle(text);
+                    UpdateFeed updateTask = new UpdateFeed(HomeActivity.this, feed, (error, res) -> {
+                        navAdapter.updateFeed(feed);
+                    });
+                    ThreadPool.getInstance().execute(updateTask);
+                });
+
             } else if (item.getItemId() == R.id.feed_unsub) {
 
                 Messages.showAreYouSure(HomeActivity.this, feed.getTitle(),
                         HomeActivity.this.getString(R.string.dialog_unsubscribe), (dialog, which) -> {
                     if (which == DialogInterface.BUTTON_POSITIVE) {
-                        Log.e("SELECTED YES", "Sel yes");
-                    } else {
-                        Log.e("SELECTED NO", "Sel no");
+                        DeleteFeed deleteTask = new DeleteFeed(HomeActivity.this, feed, (error, res) -> {
+                            navAdapter.removeFeed(feed);
+                        });
+                        ThreadPool.getInstance().execute(deleteTask);
                     }
                 });
 

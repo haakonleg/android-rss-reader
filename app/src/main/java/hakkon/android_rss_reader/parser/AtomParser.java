@@ -39,9 +39,9 @@ public class AtomParser extends Parser {
             } else if (tag.equalsIgnoreCase("updated")) {
                 result.feed.setUpdated(readDate(parser));
             } else if (tag.equalsIgnoreCase("link")) {
-                result.feed.setLink(readText(parser));
-            } else if (tag.equalsIgnoreCase("icon")) {
-                result.feed.setImage(readText(parser));
+                if (result.feed.getLink() == null)
+                    result.feed.setLink(parser.getAttributeValue(null, "href"));
+                parser.nextTag();
             } else if (tag.equalsIgnoreCase("entry")) {
                 result.items.add(readEntry(parser));
             } else {

@@ -25,7 +25,7 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private static final int TYPE_FEED = 2;
     private static final int TYPE_FOOTER = 3;
 
-    Activity activity;
+    private Activity activity;
     private List<Feed> items;
     private OnItemClicked listener;
 
@@ -39,6 +39,18 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public void addFeed(Feed item) {
         this.items.add(item);
         this.notifyItemInserted(getItemCount() - 1);
+    }
+
+    public void removeFeed(Feed item) {
+        int position = this.items.indexOf(item);
+        this.items.remove(position);
+        // Need +1 because of header
+        this.notifyItemRemoved(position + 1);
+    }
+
+    public void updateFeed(Feed item) {
+        int position = this.items.indexOf(item);
+        this.notifyItemChanged(position + 1);
     }
 
     public List<Feed> getFeeds() {

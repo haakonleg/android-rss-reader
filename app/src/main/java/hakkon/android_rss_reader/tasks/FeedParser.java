@@ -79,15 +79,22 @@ public class FeedParser extends BaseTask<Parser.ParserResult> {
             return;
         }
 
-        result.feed.setOriginLink(this.url);
         // Save feed to database if it doesn't exist
-        if (db.feedDao().getFeed(result.feed.getOriginLink()) == null)
+        Feed feed = db.feedDao().getFeed(this.url);
+        if (feed == null) {
+            result.feed.setOriginLink(this.url);
+            // Set feed image to favicon
+            String favicon = result.feed.getLink() + "/favicon.ico";
+            result.feed.setImage(favicon);
+
             db.feedDao().insertFeed(result.feed);
+            feed = db.feedDao().getFeed(this.url);
+        }
 
         // Check new articles
-        List<FeedItem> affectedItems = checkNewItems(result.items, result.feed.getTitle());
+        List<FeedItem> affectedItems = checkNewItems(result.items, feed.getTitle());
 
-        callbackToUI(PARSER_OK, new Parser.ParserResult(result.feed, affectedItems));
+        callbackToUI(PARSER_OK, new Parser.ParserResult(feed, affectedItems));
     }
 
     private List<FeedItem> checkNewItems(List<FeedItem> items, String feedTitle) {

@@ -65,11 +65,11 @@ public class RdfParser extends Parser {
                 in.setLink(readText(parser));
             } else if (tag.equalsIgnoreCase("description")) {
                 in.setDescription(readText(parser));
-            } else if (tag.equalsIgnoreCase("image")) {
-                String image = parser.getAttributeValue(null, "rdf:resource");
-                if (image != null)
-                    in.setImage(parser.getAttributeValue(null, "rdf:resource"));
-                parser.nextTag();
+            //} else if (tag.equalsIgnoreCase("image")) {
+            //    String image = parser.getAttributeValue(null, "rdf:resource");
+            //    if (image != null)
+            //        in.setImage(parser.getAttributeValue(null, "rdf:resource"));
+            //    parser.nextTag();
             } else if (tag.equalsIgnoreCase("dc:date")) {
                 in.setUpdated(readDate(parser));
             } else {

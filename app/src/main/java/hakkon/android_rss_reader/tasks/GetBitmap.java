@@ -33,8 +33,10 @@ public class GetBitmap extends BaseTask<Bitmap> {
             DownloadBitmap bitmapDownloader = new DownloadBitmap(this.url);
             try {
                 Bitmap rawBitmap = bitmapDownloader.getBitmap();
-                BitmapCache.saveImage(callingActivity, this.url, rawBitmap);
-                this.bitmap = BitmapCache.loadImage(callingActivity, this.url);
+                if (rawBitmap != null) {
+                    BitmapCache.saveImage(callingActivity, this.url, rawBitmap);
+                    this.bitmap = BitmapCache.loadImage(callingActivity, this.url);
+                }
             } catch (IOException e) {
                 Log.e("GetBitmap", Log.getStackTraceString(e));
                 callbackToUI(-1, null);

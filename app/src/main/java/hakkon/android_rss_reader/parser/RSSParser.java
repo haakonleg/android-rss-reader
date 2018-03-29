@@ -45,8 +45,8 @@ public class RSSParser extends Parser {
                 result.feed.setLink(readText(parser));
             } else if (tag.equalsIgnoreCase("description")) {
                 result.feed.setDescription(readText(parser));
-            } else if (tag.equalsIgnoreCase("image")) {
-                result.feed.setImage(readImage(parser));
+            //} else if (tag.equalsIgnoreCase("image")) {
+            //    result.feed.setImage(readImage(parser));
             } else if (tag.equalsIgnoreCase("item")) {
                 result.items.add(readItem(parser));
             } else {
