@@ -4,23 +4,24 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.database.FeedItem;
 import hakkon.android_rss_reader.tasks.FeedParser;
 import hakkon.android_rss_reader.tasks.GetItems;
@@ -33,15 +34,12 @@ import hakkon.android_rss_reader.util.NetworkState;
 public class ViewFeedFragment extends Fragment {
     private SwipeRefreshLayout refreshLayout;
     private RecyclerView feedList;
-    private ProgressBar progressBar;
+    private ImageView refreshBtn;
+    private Animation refreshAnim;
+    private FeedListAdapter adapter;
 
     private String title;
     private ArrayList<String> feedUrls;
-
-    private FeedListAdapter adapter;
-
-    private ImageView refreshBtn;
-    private Animation refreshAnim;
 
     public ViewFeedFragment() {
         // Required empty public constructor
@@ -101,7 +99,6 @@ public class ViewFeedFragment extends Fragment {
 
         // Find elements
         this.refreshLayout = view.findViewById(R.id.feed_refresh_layout);
-        this.progressBar = view.findViewById(R.id.feed_progressbar);
         this.feedList = view.findViewById(R.id.feed_recycler_list);
 
         // Set up recyclerview
@@ -115,13 +112,22 @@ public class ViewFeedFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        HomeActivity homeActivity = ((HomeActivity)getActivity());
+        homeActivity.getSupportActionBar().setTitle(this.title);
+        homeActivity.getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
+        homeActivity.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+
         // Get articles from cache
-        ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.title);
-        GetItems fetchTask = new GetItems(getActivity(), this.feedUrls, (error, items) -> {
-            this.adapter.setItems(items);
-            this.progressBar.setVisibility(View.GONE);
-        });
+        GetItems fetchTask = new GetItems(getActivity(), this.feedUrls,
+                (error, items) -> this.adapter.setItems(items));
         ThreadPool.getInstance().execute(fetchTask);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home)
+            ((HomeActivity)getActivity()).drawerLayout.openDrawer(Gravity.START);
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -164,7 +170,7 @@ public class ViewFeedFragment extends Fragment {
             int index = iter.nextIndex();
             String feedUrl = iter.next();
 
-            FeedParser updateTask = new FeedParser(getActivity(), feedUrl, (error1, result) -> {
+            FeedParser updateTask = new FeedParser(getActivity(), feedUrl, (error, result) -> {
                 updatedItems.addAll(result.items);
 
                 // Run when all feeds are updated

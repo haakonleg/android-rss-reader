@@ -8,8 +8,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.GravityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,8 +16,11 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.tasks.DeleteFeed;
@@ -28,11 +30,12 @@ import hakkon.android_rss_reader.tasks.UpdateFeed;
 import hakkon.android_rss_reader.util.Messages;
 import hakkon.android_rss_reader.util.NetworkState;
 
-public class HomeActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
-    private DrawerLayout drawerLayout;
+public class HomeActivity extends AppCompatActivity {
+    public DrawerLayout drawerLayout;
     private RecyclerView feedsList;
-    public NavRecyclerAdapter navAdapter;
+    private NavRecyclerAdapter navAdapter;
     private FloatingActionButton addFeedBtn;
+    private ProgressBar syncProgress;
     private Handler mHandler;
 
     @Override
@@ -49,17 +52,18 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Set up actionbar
+        // Find elements
         Toolbar toolbar = findViewById(R.id.toolbar);
+        this.drawerLayout = findViewById(R.id.home_drawer_layout);
+        this.feedsList = findViewById(R.id.nav_feeds_list);
+        this.addFeedBtn = findViewById(R.id.nav_add_feed_btn);
+        this.syncProgress = findViewById(R.id.sync_progressbar);
+
+        // Set up actionbar
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
-
-        // Find elements
-        this.drawerLayout = findViewById(R.id.home_drawer_layout);
-        this.feedsList = findViewById(R.id.nav_feeds_list);
-        this.addFeedBtn = findViewById(R.id.nav_add_feed_btn);
 
         // Set up nav feed list
         this.navAdapter = new NavRecyclerAdapter(this, new NavListener());
@@ -68,11 +72,9 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         // Add feed click listener
         this.addFeedBtn.setOnClickListener((v) -> this.showAddFeedPopup());
 
-        // Set fragment manager listener
-        getSupportFragmentManager().addOnBackStackChangedListener(this);
-
         // Do initializations
         initHome();
+
         this.mHandler = new Handler();
     }
 
@@ -84,37 +86,55 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
             if (this.navAdapter.hasFeed(url))
                 Messages.showError(this, "You have already added this feed", null);
             else
-                updateFeed(url, true);
+                addFeed(url);
         });
         fragment.show(getSupportFragmentManager(), "AddFeedDialog");
     }
 
     private void initHome() {
-        // Add stored feeds to drawer list
+        // Get stored feeds
         GetFeeds getFeeds = new GetFeeds(this, (error, feeds) -> {
+            this.navAdapter.setFeeds(feeds);
 
-            boolean hasNetwork = NetworkState.hasNetwork(this);
             ArrayList<String> feedUrls = new ArrayList<>();
-
-            for (Feed feed : feeds) {
-                this.navAdapter.addFeed(feed);
+            for (Feed feed : feeds)
                 feedUrls.add(feed.getOriginLink());
 
-                // Update feed if we have an internet connection
-                if (hasNetwork)
-                    updateFeed(feed.getOriginLink(), false);
-            }
-
-            // Display new feed entries (home screen)
+            // Display new feed entries (home screen), only if it doesn't already exist
             if (getSupportFragmentManager().findFragmentByTag("HomeFragment") == null) {
                 ViewFeedFragment fragment = ViewFeedFragment.newInstance("Recent Articles", feedUrls);
-                getSupportFragmentManager().beginTransaction().replace(R.id.content_layout, fragment, "HomeFragment").commit();
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction().replace(R.id.content_layout, fragment, "HomeFragment");
+
+                // Update all feeds if we have an internet connection
+                if (NetworkState.hasNetwork(this)) {
+                    this.syncProgress.setVisibility(View.VISIBLE);
+                    syncFeeds(feedUrls, () -> {
+                        ft.commit();
+                        this.syncProgress.setVisibility(View.GONE);
+                    });
+                } else {
+                    ft.commit();
+                }
             }
         });
         ThreadPool.getInstance().execute(getFeeds);
     }
 
-    private void updateFeed(String url, boolean addToDrawer) {
+    private void syncFeeds(ArrayList<String> feedUrls, Runnable runAfter) {
+        for(ListIterator<String> iter = feedUrls.listIterator(); iter.hasNext();) {
+            int index = iter.nextIndex();
+            String feedUrl = iter.next();
+
+            FeedParser parser = new FeedParser(this, feedUrl, (error, result) -> {
+                if (index == feedUrls.size() - 1)
+                    runAfter.run();
+            });
+            ThreadPool.getInstance().execute(parser);
+        }
+    }
+
+    private void addFeed(String url) {
+        this.syncProgress.setVisibility(View.VISIBLE);
         FeedParser parser = new FeedParser(this, url, (error, result) -> {
             if (error == FeedParser.PARSER_ERROR_DOWNLOAD) {
                 Messages.showError(this, "There was an error downloading this feed: " + url, null);
@@ -122,9 +142,8 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
                 Messages.showError(this, "This does not seem to be a valid feed: " + url, null);
             } else if (error == FeedParser.PARSER_ERROR_PARSE_ERROR) {
                 Messages.showError(this, "There was an error parsing this feed: " + url, null);
-            } else if (addToDrawer) {
-                this.navAdapter.addFeed(result.feed);
             }
+            this.navAdapter.addFeed(result.feed);
         });
         ThreadPool.getInstance().execute(parser);
     }
@@ -197,39 +216,5 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
 
             }
         }
-    }
-
-    @Override
-    public void onBackStackChanged() {
-        // Get current fragment name
-        FragmentManager fm = getSupportFragmentManager();
-        int cnt = fm.getBackStackEntryCount();
-
-        // Show back button
-        if (cnt > 0 && (fm.getBackStackEntryAt(cnt-1).getName().equals("ViewArticle") ||
-                fm.getBackStackEntryAt(cnt-1).getName().equals("Settings"))) {
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_24dp);
-            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        } else {
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_24dp);
-            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            FragmentManager fm = getSupportFragmentManager();
-            int cnt = fm.getBackStackEntryCount();
-
-            // Back button
-            if (cnt > 0 && (fm.getBackStackEntryAt(cnt - 1).getName().equals("ViewArticle") ||
-                    fm.getBackStackEntryAt(cnt - 1).getName().equals("Settings")))
-                fm.popBackStack();
-            // Drawer button
-            else
-                this.drawerLayout.openDrawer(GravityCompat.START);
-        }
-        return false;
     }
 }

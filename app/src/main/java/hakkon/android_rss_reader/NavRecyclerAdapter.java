@@ -36,6 +36,11 @@ public class NavRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         this.listener = listener;
     }
 
+    public void setFeeds(List<Feed> feeds) {
+        this.items = feeds;
+        this.notifyDataSetChanged();
+    }
+
     public void addFeed(Feed item) {
         this.items.add(item);
         this.notifyItemInserted(getItemCount() - 1);

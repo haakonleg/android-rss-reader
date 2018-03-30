@@ -44,6 +44,9 @@ public class ThreadPool {
     public void execute(BaseTask task) {
         this.threadPool.execute(task);
     }
+    public void execute(Runnable task) {
+        this.threadPool.execute(task);
+    }
 
     public void stopAll() {
         BaseTask[] tasks = new BaseTask[this.workQueue.size()];

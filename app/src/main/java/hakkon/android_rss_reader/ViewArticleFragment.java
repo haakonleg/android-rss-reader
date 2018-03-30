@@ -1,6 +1,5 @@
 package hakkon.android_rss_reader;
 
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,7 +8,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -53,6 +54,7 @@ public class ViewArticleFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         Bundle bundle;
         if (savedInstanceState != null)
@@ -63,6 +65,22 @@ public class ViewArticleFragment extends Fragment {
         if (bundle != null) {
             this.article = bundle.getParcelable("feed_item");
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        HomeActivity homeActivity = ((HomeActivity)getActivity());
+        homeActivity.getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_24dp);
+        homeActivity.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home)
+            getFragmentManager().popBackStack();
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

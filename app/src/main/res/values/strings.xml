@@ -23,17 +23,14 @@
 
     <string name="pref_feeds">Feeds</string>
     <string name="pref_max_articles_title">Number of Articles</string>
-    <string name="pref_max_articles_summary">Select the max number of articles to display per feed</string>
+    <string name="pref_max_articles_summary">Select the max number of articles per feed</string>
     <string-array name="pref_max_articles_entries">
         <item>25</item>
         <item>50</item>
         <item>75</item>
         <item>100</item>
     </string-array>
-    <string name="pref_max_articles_default">25</string>
-    <string name="pref_max_recent_articles_title">Number of Recent Articles</string>
-    <string name="pref_max_recent_articles_summary">Select the max number of recent articles to display on the home screen</string>
-    <string name="pref_max_recent_articles_default">50</string>
+    <string name="pref_max_articles_default">100</string>
     <string name="pref_misc">Misc</string>
     <string name="pref_clear_cache_title">Clear Cache</string>
     <string name="pref_clear_cache_summary">Delete all images and articles from cache</string>

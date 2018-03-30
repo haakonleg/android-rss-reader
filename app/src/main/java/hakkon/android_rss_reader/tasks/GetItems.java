@@ -30,7 +30,7 @@ public class GetItems extends BaseTask<List<FeedItem>> {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(callingActivity);
 
         // Max items to show
-        int limit = Integer.parseInt(prefs.getString("max_recent_articles",
+        int limit = Integer.parseInt(prefs.getString("max_articles",
                 callingActivity.getString(R.string.pref_max_articles_default)));
 
         List<FeedItem> items = db.feedItemDAO().getItems(this.feedUrls, limit);
