@@ -31,6 +31,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
     private RecyclerView feedsList;
     public NavRecyclerAdapter navAdapter;
     private FloatingActionButton addFeedBtn;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
 
         // Do initializations
         initHome();
+        this.mHandler = new Handler();
     }
 
     private void showAddFeedPopup() {
@@ -140,7 +142,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
             else if (button == R.id.nav_settings_btn)
                 displayContent(new SettingsFragment(), "Settings");
 
-            new Handler().postDelayed(() -> {
+            mHandler.postDelayed(() -> {
                 drawerLayout.closeDrawers();
             }, 100);
         }
@@ -151,7 +153,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
             ViewFeedFragment fragment = ViewFeedFragment.newInstanceFeed(feed.getTitle(), feed.getOriginLink());
             displayContent(fragment, "ViewFeed");
 
-            new Handler().postDelayed(() -> {
+            mHandler.postDelayed(() -> {
                 drawerLayout.closeDrawers();
             }, 100);
         }
