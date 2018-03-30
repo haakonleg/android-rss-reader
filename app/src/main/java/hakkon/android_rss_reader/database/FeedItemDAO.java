@@ -6,6 +6,7 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,11 +18,11 @@ public interface FeedItemDAO {
     @Query("SELECT * FROM FeedItem WHERE item_parent = :parent AND item_link = :link")
     FeedItem getItem(String parent, String link);
 
-    @Query("SELECT * FROM FeedItem WHERE item_parent = :parent ORDER BY item_date DESC")
-    List<FeedItem> getItems(String parent);
+    @Query("SELECT * FROM FeedItem WHERE item_parent IN (:feedUrls) ORDER BY item_date DESC LIMIT 0,:count")
+    List<FeedItem> getItems(List<String> feedUrls, int count);
 
-    @Query("SELECT * FROM FeedItem ORDER BY item_date DESC LIMIT :limit")
-    List<FeedItem> getRecentItems(int limit);
+    @Query("SELECT * FROM FeedItem WHERE item_parent = :feedUrl ORDER BY item_date DESC")
+    List<FeedItem> getItems(String feedUrl);
 
     @Query("SELECT item_date FROM FeedItem WHERE item_parent = :parent ORDER BY item_date DESC LIMIT 1")
     long getNewestItem(String parent);

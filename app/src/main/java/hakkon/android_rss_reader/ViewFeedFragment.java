@@ -22,10 +22,8 @@ import java.util.ListIterator;
 
 import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.database.FeedItem;
-import hakkon.android_rss_reader.tasks.BaseTask;
 import hakkon.android_rss_reader.tasks.FeedParser;
 import hakkon.android_rss_reader.tasks.GetItems;
-import hakkon.android_rss_reader.tasks.GetRecentItems;
 import hakkon.android_rss_reader.util.Messages;
 import hakkon.android_rss_reader.util.NetworkState;
 
@@ -36,9 +34,10 @@ public class ViewFeedFragment extends Fragment {
     private SwipeRefreshLayout refreshLayout;
     private RecyclerView feedList;
     private ProgressBar progressBar;
-    private String feedTitle;
-    private String feedUrl;
-    private Boolean isHome;
+
+    private String title;
+    private ArrayList<String> feedUrls;
+
     private FeedListAdapter adapter;
 
     private ImageView refreshBtn;
@@ -48,20 +47,24 @@ public class ViewFeedFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static ViewFeedFragment newInstanceFeed(String feedTitle, String feedUrl) {
+    // For displaying multiple feeds
+    public static ViewFeedFragment newInstance(String title, ArrayList<String> feedUrls) {
         ViewFeedFragment fragment = new ViewFeedFragment();
         Bundle bundle = new Bundle();
-        bundle.putBoolean("is_home", false);
-        bundle.putString("feed_title", feedTitle);
-        bundle.putString("feed_url", feedUrl);
+        bundle.putString("title", title);
+        bundle.putStringArrayList("feed_urls", feedUrls);
         fragment.setArguments(bundle);
         return fragment;
     }
 
-    public static ViewFeedFragment newInstanceHome() {
+    // For displaying single feed
+    public static ViewFeedFragment newInstance(String title, String feedUrl) {
         ViewFeedFragment fragment = new ViewFeedFragment();
         Bundle bundle = new Bundle();
-        bundle.putBoolean("is_home", true);
+        bundle.putString("title", title);
+        ArrayList<String> feedUrls = new ArrayList<>();
+        feedUrls.add(feedUrl);
+        bundle.putStringArrayList("feed_urls", feedUrls);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -78,9 +81,8 @@ public class ViewFeedFragment extends Fragment {
             bundle = getArguments();
 
         if (bundle != null) {
-            this.feedTitle = bundle.getString("feed_title");
-            this.feedUrl = bundle.getString("feed_url");
-            this.isHome = bundle.getBoolean("is_home");
+            this.title = bundle.getString("title");
+            this.feedUrls = bundle.getStringArrayList("feed_urls");
             this.adapter = new FeedListAdapter(getActivity(), new FeedListListener());
         }
     }
@@ -88,9 +90,8 @@ public class ViewFeedFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("feed_title", this.feedTitle);
-        outState.putString("feed_url", this.feedUrl);
-        outState.putBoolean("is_home", this.isHome);
+        outState.putString("title", this.title);
+        outState.putStringArrayList("feed_urls", this.feedUrls);
     }
 
     @Override
@@ -115,19 +116,11 @@ public class ViewFeedFragment extends Fragment {
         super.onResume();
 
         // Get articles from cache
-        BaseTask fetchTask;
-        BaseTask.TaskCallback<List<FeedItem>> callback = (error, items) -> {
+        ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.title);
+        GetItems fetchTask = new GetItems(getActivity(), this.feedUrls, (error, items) -> {
             this.adapter.setItems(items);
             this.progressBar.setVisibility(View.GONE);
-        };
-
-        if (this.isHome) {
-            ((HomeActivity)getActivity()).getSupportActionBar().setTitle(getString(R.string.app_name));
-            fetchTask = new GetRecentItems(getActivity(), callback);
-        } else {
-            ((HomeActivity)getActivity()).getSupportActionBar().setTitle(this.feedTitle);
-            fetchTask = new GetItems(getActivity(), this.feedUrl, callback);
-        }
+        });
         ThreadPool.getInstance().execute(fetchTask);
     }
 
@@ -163,40 +156,26 @@ public class ViewFeedFragment extends Fragment {
             return;
         }
 
-        // If is home, refresh all feeds
-        if (isHome) {
-            List<Feed> feeds = ((HomeActivity)getActivity()).navAdapter.getFeeds();
-            List<FeedItem> updatedItems = new ArrayList<>();
+        // Refresh all feeds
+        List<FeedItem> updatedItems = new ArrayList<>();
 
-            for(ListIterator<Feed> iter = feeds.listIterator(); iter.hasNext();) {
-                int index = iter.nextIndex();
-                Feed feed = iter.next();
+        // Loop through feeds
+        for(ListIterator<String> iter = this.feedUrls.listIterator(); iter.hasNext();) {
+            int index = iter.nextIndex();
+            String feedUrl = iter.next();
 
-                FeedParser updateTask = new FeedParser(getActivity(), feed.getOriginLink(), (error1, result) -> {
-                    updatedItems.addAll(result.items);
+            FeedParser updateTask = new FeedParser(getActivity(), feedUrl, (error1, result) -> {
+                updatedItems.addAll(result.items);
 
-                    // Run when all feeds are updated
-                    if (index == feeds.size() - 1) {
-                        if (updatedItems.size() > 0)
-                            adapter.addItems(updatedItems);
+                // Run when all feeds are updated
+                if (index == this.feedUrls.size() - 1) {
+                    if (updatedItems.size() > 0)
+                        adapter.addItems(updatedItems);
 
-                        Messages.showToast(getActivity(), "Updated articles: " + Integer.toString(updatedItems.size()));
-                        this.refreshAnim.cancel();
-                        feedList.scrollToPosition(0);
-                    }
-                });
-                ThreadPool.getInstance().execute(updateTask);
-            }
-
-            // Else refresh only this feed
-        } else {
-            FeedParser updateTask = new FeedParser(getActivity(), feedUrl, (error, result) -> {
-                if (result.items.size() > 0)
-                    adapter.addItems(result.items);
-
-                Messages.showToast(getActivity(), "Updated articles: " + Integer.toString(result.items.size()));
-                this.refreshAnim.cancel();
-                feedList.scrollToPosition(0);
+                    Messages.showToast(getActivity(), "Updated articles: " + Integer.toString(updatedItems.size()));
+                    this.refreshAnim.cancel();
+                    feedList.scrollToPosition(0);
+                }
             });
             ThreadPool.getInstance().execute(updateTask);
         }

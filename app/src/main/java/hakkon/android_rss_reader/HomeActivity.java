@@ -18,6 +18,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+
 import hakkon.android_rss_reader.database.Feed;
 import hakkon.android_rss_reader.tasks.DeleteFeed;
 import hakkon.android_rss_reader.tasks.FeedParser;
@@ -92,8 +94,12 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         GetFeeds getFeeds = new GetFeeds(this, (error, feeds) -> {
 
             boolean hasNetwork = NetworkState.hasNetwork(this);
+            ArrayList<String> feedUrls = new ArrayList<>();
+
             for (Feed feed : feeds) {
                 this.navAdapter.addFeed(feed);
+                feedUrls.add(feed.getOriginLink());
+
                 // Update feed if we have an internet connection
                 if (hasNetwork)
                     updateFeed(feed.getOriginLink(), false);
@@ -101,7 +107,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
 
             // Display new feed entries (home screen)
             if (getSupportFragmentManager().findFragmentByTag("HomeFragment") == null) {
-                ViewFeedFragment fragment = ViewFeedFragment.newInstanceHome();
+                ViewFeedFragment fragment = ViewFeedFragment.newInstance("Recent Articles", feedUrls);
                 getSupportFragmentManager().beginTransaction().replace(R.id.content_layout, fragment, "HomeFragment").commit();
             }
         });
@@ -150,7 +156,7 @@ public class HomeActivity extends AppCompatActivity implements FragmentManager.O
         @Override
         public void onClickFeed(Feed feed) {
             getSupportFragmentManager().popBackStack();
-            ViewFeedFragment fragment = ViewFeedFragment.newInstanceFeed(feed.getTitle(), feed.getOriginLink());
+            ViewFeedFragment fragment = ViewFeedFragment.newInstance(feed.getTitle(), feed.getOriginLink());
             displayContent(fragment, "ViewFeed");
 
             mHandler.postDelayed(() -> {
